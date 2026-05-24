@@ -1,0 +1,6 @@
+{
+  "name": "Professor Rafa na Escuta",
+  "description": "Assistente de saúde preventiva inteligente focado em acessibilidade para idosos (público 50+). Oferece orientações personalizadas, chat com voz, controle de rotina e botão de emergência.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
