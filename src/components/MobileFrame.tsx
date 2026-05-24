@@ -112,22 +112,24 @@ export default function MobileFrame({
               />
               <div>
                 <h1 className="text-xl font-bold font-display text-sky-950 tracking-tight leading-none">Prof. Rafa</h1>
-                <span className="text-slate-500 text-xs font-medium tracking-wide">Saúde Preventiva</span>
+                <span className="text-slate-500 text-xs font-medium tracking-wide">Na Escuta...</span>
               </div>
             </div>
           )}
 
           <div className="flex items-center gap-2">
             {/* GIANT RED EMERGENCY BUTTON - Styled with the Professional Polish emergency-btn shadow style */}
-            <button 
-              id="emergency-trigger"
-              onClick={onEmergencyClick}
-              className="btn-shadow-emergency bg-[#dc2626] hover:bg-red-700 active:scale-95 text-white py-3 px-4 rounded-2xl flex items-center gap-2 font-black border-2 border-red-800 shadow-md cursor-pointer transition-all"
-              title="Pedir socorro urgente"
-            >
-              <ShieldAlert className="w-6 h-6 shrink-0 text-white" />
-              <span className="text-md leading-none tracking-tight">AJUDA</span>
-            </button>
+            {isLoggedIn && (
+              <button 
+                id="emergency-trigger"
+                onClick={onEmergencyClick}
+                className="btn-shadow-emergency bg-[#dc2626] hover:bg-red-700 active:scale-95 text-white py-3 px-4 rounded-2xl flex items-center gap-2 font-black border-2 border-red-800 shadow-md cursor-pointer transition-all"
+                title="Pedir socorro urgente"
+              >
+                <ShieldAlert className="w-6 h-6 shrink-0 text-white" />
+                <span className="text-md leading-none tracking-tight">AJUDA</span>
+              </button>
+            )}
           </div>
         </div>
 

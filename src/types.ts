@@ -7,6 +7,7 @@ export interface UserProfile {
   emergencyContactPhone: string;
   medicalNotes: string;
   isDemo?: boolean;
+  dbErrorFallback?: boolean;
 }
 
 export interface Message {

@@ -145,7 +145,7 @@ export default function ChatScreen({
     }
   };
 
-  // Speaks response using Gemini Flash TTS API on the server (pt-BR with voice 'Kore')
+  // Speaks response using Gemini Flash TTS API on the server (pt-BR with voice 'Puck')
   const handleHearResponse = async (text: string, messageId: string) => {
     if (currentlySpeakingId === messageId) {
       handleStopSpeech();

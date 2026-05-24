@@ -75,7 +75,7 @@ app.post("/api/gemini/tts", async (req, res) => {
         responseModalities: ["AUDIO"],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: "Kore" }
+            prebuiltVoiceConfig: { voiceName: "Puck" }
           }
         }
       }

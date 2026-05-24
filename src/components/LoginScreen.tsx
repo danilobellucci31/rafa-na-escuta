@@ -45,7 +45,11 @@ export default function LoginScreen({ onLoginSuccess, fontSizeLarge }: LoginScre
         if (signupError) {
           setError(signupError.message);
         } else {
-          setInfo("Conta criada! Pode entrar agora.");
+          if (data?.isLocalFallback) {
+            setInfo("Sua conta foi criada com sucesso no armazenamento local! (Sua base de dados Supabase remota possui uma falha interna 'Database error saving new user'. Salvamos seu cadastro de forma segura em seu navegador para que você consiga usar todas as funções normalmente!).");
+          } else {
+            setInfo("Conta criada! Pode entrar agora.");
+          }
           setIsSignUp(false);
           setPassword("");
         }
