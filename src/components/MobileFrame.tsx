@@ -136,7 +136,9 @@ export default function MobileFrame({
         {/* Main Fluid Content Container */}
         <main 
           id="phone-viewport" 
-          className={`flex-1 overflow-y-auto bg-slate-50 flex flex-col relative ${
+          className={`flex-1 bg-slate-50 flex flex-col relative ${
+            currentView === "chat" ? "overflow-hidden" : "overflow-y-auto"
+          } ${
             fontSizeLarge ? 'text-lg' : 'text-base'
           }`}
         >

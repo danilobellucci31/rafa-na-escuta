@@ -27,6 +27,14 @@ export default function ChatScreen({
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [pendingMessageText, setPendingMessageText] = useState<string | null>(null);
+  const [rememberPreference, setRememberPreference] = useState<boolean>(false);
+  const [savedResponseMode, setSavedResponseMode] = useState<"voice" | "text" | null>(() => {
+    const cached = localStorage.getItem("senior_chat_response_mode_v2");
+    if (cached === "voice" || cached === "text") return cached;
+    return null;
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const initializedWelcomeRef = useRef(false);
@@ -87,18 +95,24 @@ export default function ChatScreen({
     const initialWelcomeId = "init-welcome-" + Date.now();
     const firstName = userProfile.name.split(" ")[0];
     
+    let welcomeContent = `Olá, ${firstName}! Que alegria falar com você. 🥰 \nEu sou o seu amigo Professor Rafa e estou aqui na escuta prontinho para te ajudar.\n\nVocê quer dicas de alongamentos leves, sono relaxante, rotinas do dia a dia ou quer apenas conversar?\n\nEscreva sua dúvida no campo abaixo ou clique no grande **Microfone Verde** para me fazer uma pergunta falando!`;
+
+    if (initialPrompt) {
+      welcomeContent = `Olá, ${firstName}! Vejo que você quer conversar sobre este assunto importante hoje. 😊\n\nEu preparei uma sugestão de pergunta especial na caixa de texto abaixo. Você pode lê-la, editá-la se preferir, usar o **Microfone Verde** para fazer sua pergunta por áudio falado, ou simplesmente clicar em **Enviar** (o botão azul) para falar comigo diretamente!`;
+    }
+
     setMessages([
       {
         id: initialWelcomeId,
         sender: "rafa",
-        content: `Olá, ${firstName}! Que alegria falar com você. 🥰 \nEu sou o seu amigo Professor Rafa e estou aqui na escuta prontinho para te ajudar.\n\nVocê quer dicas de alongamentos leves, sono relaxante, rotinas do dia a dia ou quer apenas conversar?\n\nEscreva sua dúvida no campo abaixo ou clique no grande **Microfone Vermelho** para me fazer uma pergunta falando!`,
+        content: welcomeContent,
         timestamp: new Date()
       }
     ]);
 
-    // Automatically trigger initial prompt if requested from Dashboard shortcuts
+    // Automatically prefill initial prompt into text input instead of instantly submitting it
     if (initialPrompt) {
-      handleSilentTrigger(initialPrompt);
+      setInputText(initialPrompt);
     }
 
     // Cleanup speaking on exit
@@ -226,11 +240,39 @@ export default function ChatScreen({
     }
   };
 
+  const handleInitiateSend = (text: string) => {
+    if (!text.trim()) return;
+
+    if (savedResponseMode) {
+      executeSendMessage(text, savedResponseMode);
+    } else {
+      setPendingMessageText(text);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputText.trim()) {
+      handleInitiateSend(inputText);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (inputText.trim()) {
+        handleInitiateSend(inputText);
+      }
+    }
+  };
+
+  const handleSuggestionClick = (q: string) => {
+    setInputText(q);
+    handleInitiateSend(q + "? Responda de forma simples, Professor Rafa!");
+  };
+
   // Submit trigger
-  const handleSendMessage = async (e?: React.FormEvent, phraseOverride?: string) => {
-    if (e) e.preventDefault();
-    
-    const textToSend = phraseOverride || inputText;
+  const executeSendMessage = async (textToSend: string, mode: "voice" | "text") => {
     if (!textToSend.trim()) return;
 
     // Clear inputs and voice
@@ -282,10 +324,12 @@ export default function ChatScreen({
 
       setMessages(prev => [...prev, rafaMessage]);
 
-      // Prompt automatically reading response aloud as default senior assistance
-      setTimeout(() => {
-        handleHearResponse(rafaMessage.content, rafaMessage.id);
-      }, 500);
+      // Trigger automatic TTS playback only if the user wants to hear the response
+      if (mode === "voice") {
+        setTimeout(() => {
+          handleHearResponse(rafaMessage.content, rafaMessage.id);
+        }, 500);
+      }
 
     } catch (err: any) {
       console.error(err);
@@ -308,7 +352,7 @@ export default function ChatScreen({
     // Timeout to make sure initial welcome was fully rendered and structured
     setTimeout(() => {
       setInputText(promptString);
-      handleSendMessage(undefined, promptString);
+      executeSendMessage(promptString, savedResponseMode || "voice");
     }, 100);
   };
 
@@ -327,7 +371,21 @@ export default function ChatScreen({
         </button>
 
         {/* Speed Controls for Senior accessibility */}
-        <div className="flex items-center gap-1.5 select-none shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 select-none shrink-0">
+          {savedResponseMode && (
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem("senior_chat_response_mode_v2");
+                setSavedResponseMode(null);
+              }}
+              className="text-[10px] sm:text-xs font-extrabold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer"
+              title="Clique para voltar a escolher em cada pergunta"
+            >
+              {savedResponseMode === "voice" ? "🔊 Voz" : "📝 Texto"}
+            </button>
+          )}
+
           <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-tight">Voz:</span>
           <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
             <button
@@ -473,6 +531,26 @@ export default function ChatScreen({
           </div>
         )}
 
+        {/* Polished, accessible voice recording state card */}
+        {isListening && (
+          <div className="self-center bg-teal-50 border-2 border-teal-300 rounded-3xl p-5 text-center space-y-3 shadow-md max-w-sm w-full mx-auto animate-pulse flex flex-col items-center select-none">
+            <div className="flex items-center gap-2 justify-center">
+              <span className="w-3.5 h-3.5 bg-red-600 rounded-full animate-ping shrink-0" />
+              <span className="font-extrabold text-teal-950 text-xl">Estou te ouvindo agora...</span>
+            </div>
+            <p className="text-teal-900 text-sm font-semibold leading-relaxed">
+              Fale bem pertinho do celular ou computador. Suas palavras vão aparecer escritas na barra de digitação abaixo! Quando terminar, é só clicar no microfone de novo.🎙️
+            </p>
+            <div className="flex gap-1 justify-center items-end h-8">
+              <span className="w-1.5 bg-teal-600 rounded-full animate-bounce h-4" style={{ animationDelay: '0.1s' }} />
+              <span className="w-1.5 bg-teal-600 rounded-full animate-bounce h-7" style={{ animationDelay: '0.3s' }} />
+              <span className="w-1.5 bg-teal-600 rounded-full animate-bounce h-5" style={{ animationDelay: '0.2s' }} />
+              <span className="w-1.5 bg-teal-600 rounded-full animate-bounce h-8" style={{ animationDelay: '0.4s' }} />
+              <span className="w-1.5 bg-teal-600 rounded-full animate-bounce h-3" style={{ animationDelay: '0.15s' }} />
+            </div>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="self-center bg-amber-50 rounded-xl p-4 border border-amber-300 flex items-start gap-3 max-w-sm">
             <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
@@ -494,11 +572,8 @@ export default function ChatScreen({
             {SUGGESTED_QUESTIONS.map((q, i) => (
               <button
                 key={i}
-                onClick={() => {
-                  setInputText(q);
-                  handleSendMessage(undefined, q + "? Responda de forma simples, Professor Rafa!");
-                }}
-                className="bg-white hover:bg-sky-100 text-slate-800 text-sm font-bold py-2.5 px-4 rounded-xl border-2 border-slate-200 hover:border-sky-300 transition-all text-left shadow-xs active:scale-95 duration-100"
+                onClick={() => handleSuggestionClick(q)}
+                className="bg-white hover:bg-sky-100 text-slate-800 text-sm font-bold py-2.5 px-4 rounded-xl border-2 border-slate-200 hover:border-sky-300 transition-all text-left shadow-xs active:scale-95 duration-100 cursor-pointer"
               >
                 💡 &ldquo;{q}&rdquo;
               </button>
@@ -509,48 +584,128 @@ export default function ChatScreen({
 
       {/* Simple Form Input & Giant Mic Bar */}
       <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+        <form onSubmit={handleFormSubmit} className="flex flex-col gap-3">
           
-          {/* Audio Tap Trigger Panel - Polished theme styled voice mic button */}
-          <button 
-            id="mic-recognition-btn"
-            type="button"
-            onClick={handleVoiceCaptureToggle}
-            className={`w-16 h-16 rounded-full shrink-0 flex items-center justify-center border-2 shadow-md transition-all text-white active:scale-90 ${
-              isListening 
-                ? "bg-red-500 border-red-700 animate-pulse bg-radial" 
-                : "bg-teal-600 hover:bg-teal-700 border-teal-800"
-            }`}
-            title="Ditar por voz (clique para falar)"
-          >
-            <Mic className="w-8 h-8" />
-          </button>
-
-          {/* Text Input area */}
-          <div className="flex-1 relative">
-            <input 
+          {/* Text Input area (Now a spacious wrapped Textarea!) */}
+          <div className="w-full relative">
+            <textarea 
               id="chat-text-input"
-              type="text"
+              rows={3}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Digite sua dúvida aqui..."
-              className="w-full text-xl py-4.5 pl-5 pr-12 rounded-2xl border-2 border-slate-200 focus:border-sky-500 bg-slate-50 font-medium font-sans"
+              className={`w-full ${fontSizeLarge ? "text-2.5xl" : "text-xl"} p-4 rounded-2xl border-2 border-slate-200 focus:border-sky-500 bg-slate-50 font-bold text-slate-800 font-sans resize-none transition-all outline-none`}
               disabled={isThinking}
             />
           </div>
 
-          {/* Senders control */}
-          <button 
-            id="chat-send-btn"
-            type="submit"
-            disabled={!inputText.trim() || isThinking}
-            className="w-16 h-16 bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white rounded-full flex items-center justify-center shadow-md shrink-0 border-2 border-sky-800 transition-all active:scale-90"
-            title="Enviar mensagem"
-          >
-            <Send className="w-7 h-7" />
-          </button>
+          <div className="flex items-center justify-between gap-4">
+            {/* Audio Tap Trigger Panel - Polished theme styled voice mic button */}
+            <button 
+              id="mic-recognition-btn"
+              type="button"
+              onClick={handleVoiceCaptureToggle}
+              className={`flex-1 h-16 rounded-2xl flex items-center justify-center gap-2 border-2 shadow-md transition-all text-white active:scale-95 cursor-pointer ${
+                isListening 
+                  ? "bg-red-500 border-red-700 animate-pulse" 
+                  : "bg-teal-600 hover:bg-teal-700 border-teal-800"
+              }`}
+              title="Ditar por voz (clique para falar)"
+            >
+              <Mic className="w-7 h-7 shrink-0" />
+              <span className="text-md sm:text-lg font-black uppercase">{isListening ? "Parar Gravação" : "Falar por Áudio"}</span>
+            </button>
+
+            {/* Senders control */}
+            <button 
+              id="chat-send-btn"
+              type="submit"
+              disabled={!inputText.trim() || isThinking}
+              className="w-32 h-16 bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white rounded-2xl flex items-center justify-center shadow-md shrink-0 border-2 border-sky-800 transition-all active:scale-95 gap-2 cursor-pointer"
+              title="Enviar mensagem"
+            >
+              <span className="text-md sm:text-lg font-black uppercase pl-1">Enviar</span>
+              <Send className="w-5 h-5 shrink-0" />
+            </button>
+          </div>
         </form>
       </div>
+
+      {/* Choice Modal: Hear Response or Text Only */}
+      {pendingMessageText && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-5">
+          <div className="bg-white rounded-3xl border-4 border-sky-400 p-6 space-y-6 max-w-sm shadow-2xl w-full text-center">
+            
+            <div className="space-y-2">
+              <span className="text-5xl block animate-bounce">🤔</span>
+              <h3 className="text-2xl font-black text-slate-800 leading-tight">
+                Como prefere a resposta do Prof. Rafa?
+              </h3>
+              <p className="text-slate-600 text-sm font-semibold leading-normal">
+                Você prefere que o Professor Rafa leia a resposta em voz alta ou quer apenas ler o texto de forma silenciosa?
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (rememberPreference) {
+                    localStorage.setItem("senior_chat_response_mode_v2", "voice");
+                    setSavedResponseMode("voice");
+                  }
+                  executeSendMessage(pendingMessageText, "voice");
+                  setPendingMessageText(null);
+                }}
+                className="w-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white py-4 px-4 rounded-2xl flex items-center justify-center gap-3 font-extrabold border-2 border-teal-800 text-lg shadow-md cursor-pointer transition-all"
+              >
+                <Volume2 className="w-6 h-6 shrink-0" />
+                <span>🗣️ Ouvir e Ler Resposta</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (rememberPreference) {
+                    localStorage.setItem("senior_chat_response_mode_v2", "text");
+                    setSavedResponseMode("text");
+                  }
+                  executeSendMessage(pendingMessageText, "text");
+                  setPendingMessageText(null);
+                }}
+                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 py-4 px-4 rounded-2xl flex items-center justify-center gap-3 font-extrabold border-2 border-slate-300 text-lg shadow-sm cursor-pointer transition-all"
+              >
+                <span>📝 Apenas Ler em Texto</span>
+              </button>
+            </div>
+
+            {/* Checkbox to remember preference */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-2 select-none text-slate-700">
+              <input
+                id="remember-pref"
+                type="checkbox"
+                checked={rememberPreference}
+                onChange={(e) => setRememberPreference(e.target.checked)}
+                className="w-5 h-5 accent-teal-600 border-2 border-slate-300 rounded-md cursor-pointer shrink-0"
+              />
+              <label htmlFor="remember-pref" className="text-sm font-bold cursor-pointer text-left leading-tight">
+                Lembrar minha escolha para as próximas perguntas
+              </label>
+            </div>
+
+            {/* Cancel Action */}
+            <button
+              type="button"
+              onClick={() => setPendingMessageText(null)}
+              className="text-slate-400 text-xs font-bold uppercase tracking-wider hover:text-slate-600 underline pt-1 block mx-auto cursor-pointer"
+            >
+              Cancelar pergunta
+            </button>
+
+          </div>
+        </div>
+      )}
 
       {/* Visual Audio Preparing Modal */}
       {isGeneratingAudio && (

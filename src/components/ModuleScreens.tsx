@@ -118,7 +118,7 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
         </p>
         <button
           id="ex-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, quais exercícios leves de alongamento eu posso fazer em casa hoje de manhã com segurança e sem forçar as articulações?")}
+          onClick={() => onStartChat()}
           className="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-rose-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -278,7 +278,7 @@ export function SonoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Module
         </p>
         <button
           id="sono-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, ando com dificuldades para dormir à noite. O que posso fazer de forma simples na minha rotina para relaxar e ter um sono pesado e seguro?")}
+          onClick={() => onStartChat()}
           className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-indigo-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -447,7 +447,7 @@ export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mod
         </p>
         <button
           id="mem-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, quero exercitar minha memória hoje. Você poderia fazer 3 perguntas de adivinhações ou charadas engraçadas e educativas para eu tentar responder?")}
+          onClick={() => onStartChat()}
           className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-emerald-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -612,7 +612,7 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
         </p>
         <button
           id="rot-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, como posso organizar melhor minha rotina diária para lembrar da minha água e dos meus remédios de forma segura?")}
+          onClick={() => onStartChat()}
           className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -787,7 +787,7 @@ export function RemediosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mo
         </p>
         <button
           id="rem-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, ando com algumas dúvidas sobre as possíveis misturas de medicamentos que tomo na minha rotina. Como ter certeza de que estou tomando meus remédios de forma segura nos horários corretos, e com quais alimentos ou bebidas devo evitar acompanhá-los?")}
+          onClick={() => onStartChat()}
           className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-emerald-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -962,7 +962,7 @@ export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge }: Omi
         </p>
         <button
           id="age-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, tenho uma consulta agendada em breve e gostaria de saber: quais são as perguntas mais importantes e fáceis de fazer ao médico para tirar minhas principais dúvidas de saúde, e quais exames de rotina comuns para minha idade eu deveria sugerir ou perguntar a respeito?")}
+          onClick={() => onStartChat()}
           className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
