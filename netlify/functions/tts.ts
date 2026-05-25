@@ -1,16 +1,6 @@
 import { Context } from "@netlify/functions";
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini SDK securely
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
-  }
-});
-
 export default async (req: Request, context: Context) => {
   // Enable CORS
   const headers = {
@@ -40,12 +30,23 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "Chave API não configurada no Netlify." }),
         { status: 400, headers }
       );
     }
+
+    // Initialize Gemini SDK securely inside handler
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
 
     // Clean up markdown markers and extra emojis to make the Brazilian Portuguese read sound pristine
     const textCleaned = text

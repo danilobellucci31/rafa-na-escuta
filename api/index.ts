@@ -7,16 +7,6 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Initialize Gemini SDK securely
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
-  }
-});
-
 // Professor Rafa AI Persona Definition
 const systemInstruction = `
 Você é o "Professor Rafa", um educador físico extremamente acolhedor, paciente, empático e didático. Sua especialidade é saúde, envelhecimento ativo, mobilidade e bem-estar para o público 50+. Você atua como um companheiro digital e guia diário de saúde preventiva.
@@ -53,9 +43,20 @@ app.post("/api/gemini/tts", async (req: any, res: any) => {
       return res.status(400).json({ error: "O texto para síntese de voz é obrigatório." });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       return res.status(400).json({ error: "Chave API não configurada." });
     }
+
+    // Initialize Gemini SDK securely inside route handler
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
 
     // Clean up markdown markers and extra emojis to make the Brazilian Portuguese read sound pristine
     const textCleaned = text
@@ -100,12 +101,23 @@ app.post("/api/gemini/chat", async (req: any, res: any) => {
       return res.status(400).json({ error: "O formato das mensagens é inválido." });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       // Friendly fallback if the developer hasn't set the key yet
       return res.json({
         text: "Olá! Eu sou o Professor Rafa. Que bom ter você aqui! 😊 Para eu falar com você com toda minha sabedoria, lembre-se de configurar a chave do Gemini (GEMINI_API_KEY) nos segredos do seu painel. Mas enquanto isso, me diga: como está o seu dia? Eu estou pronto para ouvir você com muita paciência e carinho!"
       });
     }
+
+    // Initialize Gemini SDK securely inside route handler
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
 
     // Convert messages to form requested by SDK
     const contentHistory = messages.map(msg => ({

@@ -1,16 +1,6 @@
 import { Context } from "@netlify/functions";
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini SDK securely
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
-  }
-});
-
 // Professor Rafa AI Persona Definition
 const systemInstruction = `
 Você é o "Professor Rafa", um educador físico extremamente acolhedor, paciente, empático e didático. Sua especialidade é saúde, envelhecimento ativo, mobilidade e bem-estar para o público 50+. Você atua como um companheiro digital e guia diário de saúde preventiva.
@@ -69,7 +59,8 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       // Friendly fallback if the developer hasn't set the key yet
       return new Response(
         JSON.stringify({
@@ -78,6 +69,16 @@ export default async (req: Request, context: Context) => {
         { status: 200, headers }
       );
     }
+
+    // Initialize Gemini SDK securely inside handler
+    const ai = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
 
     // Convert messages to form requested by SDK
     const contentHistory = messages.map(msg => ({
