@@ -9,6 +9,8 @@ interface MobileFrameProps {
   fontSizeLarge: boolean;
   setFontSizeLarge: (val: boolean) => void;
   onNavigate?: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina") => void;
+  fontSizePx?: number;
+  setFontSizePx?: React.Dispatch<React.SetStateAction<number>>;
   currentView?: string;
 }
 
@@ -20,6 +22,8 @@ export default function MobileFrame({
   fontSizeLarge,
   setFontSizeLarge,
   onNavigate,
+  fontSizePx,
+  setFontSizePx,
   currentView = "dashboard",
 }: MobileFrameProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,7 +69,7 @@ export default function MobileFrame({
       {/* Outer Shell for Desktop Viewing - Styled with the exact Professional Polish frame specs */}
       <div 
         id="phone-envelope" 
-        className="w-full md:w-[380px] md:h-[820px] bg-white md:rounded-[48px] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-0 md:border-[12px] md:border-[#1e293b] flex flex-col overflow-hidden relative"
+        className="w-full h-screen h-[100dvh] md:w-[380px] md:h-[820px] bg-white md:rounded-[48px] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-0 md:border-[12px] md:border-[#1e293b] flex flex-col overflow-hidden relative"
       >
         {/* Top Camera Notch & Speaker Grill Mockup on Desktop */}
         <div className="hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 w-40 h-6 bg-slate-800 rounded-b-2xl z-40 items-center justify-center">
@@ -118,6 +122,29 @@ export default function MobileFrame({
           )}
 
           <div className="flex items-center gap-2">
+            {/* Controles de tamanho de fonte A- e A+ */}
+            <div className="flex items-center bg-slate-100 hover:bg-slate-100/80 border-2 border-slate-200 rounded-2xl p-0.5 select-none shrink-0" id="header-font-controls">
+              <button
+                id="header-font-dec"
+                onClick={() => setFontSizePx?.(prev => Math.max(12, prev - 2))}
+                className="w-9 h-9 flex items-center justify-center font-extrabold text-slate-700 hover:bg-white active:scale-95 rounded-xl text-xs transition-all cursor-pointer"
+                title="Diminuir letras (A-)"
+                aria-label="Diminuir tamanho das letras"
+              >
+                A-
+              </button>
+              <div className="w-[1.5px] h-4 bg-slate-300 rounded-full mx-0.5"></div>
+              <button
+                id="header-font-inc"
+                onClick={() => setFontSizePx?.(prev => Math.min(28, prev + 2))}
+                className="w-9 h-9 flex items-center justify-center font-black text-slate-900 hover:bg-white active:scale-95 rounded-xl text-base transition-all cursor-pointer"
+                title="Aumentar letras (A+)"
+                aria-label="Aumentar tamanho das letras"
+              >
+                A+
+              </button>
+            </div>
+
             {/* GIANT RED EMERGENCY BUTTON - Styled with the Professional Polish emergency-btn shadow style */}
             {isLoggedIn && (
               <button 

@@ -68,10 +68,10 @@ export default function SettingsScreen({
         <div className="bg-teal-50 border-2 border-teal-100 rounded-2xl p-3 space-y-1 text-left">
           <div className="flex items-center gap-2 text-teal-900 border-b border-teal-100/30 pb-0.5">
             <Volume2 className="w-5 h-5 text-teal-600 shrink-0" />
-            <h3 className="text-sm font-black">Leitura em Voz Alta</h3>
+            <h3 className="text-sm font-black">Perguntas por Voz</h3>
           </div>
           <p className="text-teal-950 text-xs leading-normal font-semibold">
-            Todas as respostas do seu Professor têm o botão 🔊 <strong>Ouvir Resposta</strong>. Clique e ouça para cansar menos a vista!
+            Você pode fazer suas perguntas falando! Basta clicar no botão 🎙️ <strong>Falar Por Áudio</strong> para preencher a caixa de pergunta sem precisar digitar.
           </p>
         </div>
 

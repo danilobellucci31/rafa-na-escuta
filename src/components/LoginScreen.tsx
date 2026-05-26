@@ -133,13 +133,13 @@ export default function LoginScreen({ onLoginSuccess, fontSizeLarge }: LoginScre
           <div className="bg-amber-50 text-amber-900 p-3 rounded-xl border-2 border-amber-200 text-xs leading-relaxed space-y-1">
             <div className="flex items-center gap-1.5 font-black text-amber-950">
               <span className="inline-block w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
-              <span>Modo Demonstração Ativo (Apenas Armazenamento Local)</span>
+              <span>Acesso Rápido Ativo (Apenas Armazenamento Local)</span>
             </div>
             <p className="font-semibold text-slate-700">
-              Este deploy em particular está rodando sem acesso à nuvem do Supabase. Por isso, contas registradas na nuvem (como a sua) não podem ser acessadas aqui no momento. Novos cadastros ficarão salvos apenas neste navegador.
+              O aplicativo está configurado para salvar as informações de forma segura direto no seu navegador. Caso queira salvar na nuvem do Supabase, configure as credenciais.
             </p>
             <p className="font-bold text-slate-900 pt-1">
-              💡 Como resolver: Insira as chaves <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_URL</code> e <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_ANON_KEY</code> no painel do Netlify (Site configuration &gt; Environment variables) e faça o deploy novamente!
+              💡 Como configurar o Vercel: Insira as chaves <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_URL</code> e <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_ANON_KEY</code> no painel da Vercel (Configurações do Projeto &gt; Environment Variables) e faça o deploy novamente!
             </p>
           </div>
         )}
@@ -234,9 +234,9 @@ export default function LoginScreen({ onLoginSuccess, fontSizeLarge }: LoginScre
         <button 
           id="demo-mode-btn"
           onClick={handleDemoAccess}
-          className="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-white py-2 px-4 rounded-lg text-sm sm:text-base font-bold border border-amber-700 shadow-xs transition-all h-10"
+          className="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-white py-2 px-4 rounded-lg text-sm sm:text-base font-bold border border-amber-700 shadow-xs transition-all h-10 cursor-pointer"
         >
-          Experimentar Grátis (Modo Demo)
+          Experimentar Grátis
         </button>
       </div>
 

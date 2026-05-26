@@ -15,7 +15,22 @@ export default function App() {
   const [currentView, setCurrentView] = useState<"login" | "dashboard" | "chat" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos">("login");
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | undefined>(undefined);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
-  const [fontSizeLarge, setFontSizeLarge] = useState(true);
+  const [fontSizePx, setFontSizePx] = useState<number>(() => {
+    const cached = localStorage.getItem("senior_font_size_px");
+    if (cached) return parseInt(cached, 10);
+    return 18; // Default comfortable font size for older adults
+  });
+
+  const fontSizeLarge = fontSizePx >= 20;
+
+  const setFontSizeLarge = (large: boolean) => {
+    setFontSizePx(large ? 22 : 16);
+  };
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSizePx}px`;
+    localStorage.setItem("senior_font_size_px", fontSizePx.toString());
+  }, [fontSizePx]);
 
   // Load active user profile on mount
   useEffect(() => {
@@ -59,6 +74,8 @@ export default function App() {
       onLogout={handleLogout}
       fontSizeLarge={fontSizeLarge}
       setFontSizeLarge={setFontSizeLarge}
+      fontSizePx={fontSizePx}
+      setFontSizePx={setFontSizePx}
       currentView={currentView}
       onNavigate={(view) => setCurrentView(view)}
     >

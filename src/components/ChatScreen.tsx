@@ -27,13 +27,7 @@ export default function ChatScreen({
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [pendingMessageText, setPendingMessageText] = useState<string | null>(null);
-  const [rememberPreference, setRememberPreference] = useState<boolean>(false);
-  const [savedResponseMode, setSavedResponseMode] = useState<"voice" | "text" | null>(() => {
-    const cached = localStorage.getItem("senior_chat_response_mode_v2");
-    if (cached === "voice" || cached === "text") return cached;
-    return null;
-  });
+
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -91,15 +85,9 @@ export default function ChatScreen({
       }
     }
 
-    // Add initial warm welcoming greeting by Rafa
+    // Add initial greeting (simplified per user request)
     const initialWelcomeId = "init-welcome-" + Date.now();
-    const firstName = userProfile.name.split(" ")[0];
-    
-    let welcomeContent = `Olá, ${firstName}! Que alegria falar com você. 🥰 \nEu sou o seu amigo Professor Rafa e estou aqui na escuta prontinho para te ajudar.\n\nVocê quer dicas de alongamentos leves, sono relaxante, rotinas do dia a dia ou quer apenas conversar?\n\nEscreva sua dúvida no campo abaixo ou clique no grande **Microfone Verde** para me fazer uma pergunta falando!`;
-
-    if (initialPrompt) {
-      welcomeContent = `Olá, ${firstName}! Vejo que você quer conversar sobre este assunto importante hoje. 😊\n\nEu preparei uma sugestão de pergunta especial na caixa de texto abaixo. Você pode lê-la, editá-la se preferir, usar o **Microfone Verde** para fazer sua pergunta por áudio falado, ou simplesmente clicar em **Enviar** (o botão azul) para falar comigo diretamente!`;
-    }
+    const welcomeContent = "O que você quer me perguntar";
 
     setMessages([
       {
@@ -242,12 +230,7 @@ export default function ChatScreen({
 
   const handleInitiateSend = (text: string) => {
     if (!text.trim()) return;
-
-    if (savedResponseMode) {
-      executeSendMessage(text, savedResponseMode);
-    } else {
-      setPendingMessageText(text);
-    }
+    executeSendMessage(text);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -272,7 +255,7 @@ export default function ChatScreen({
   };
 
   // Submit trigger
-  const executeSendMessage = async (textToSend: string, mode: "voice" | "text") => {
+  const executeSendMessage = async (textToSend: string) => {
     if (!textToSend.trim()) return;
 
     // Clear inputs and voice
@@ -324,13 +307,6 @@ export default function ChatScreen({
 
       setMessages(prev => [...prev, rafaMessage]);
 
-      // Trigger automatic TTS playback only if the user wants to hear the response
-      if (mode === "voice") {
-        setTimeout(() => {
-          handleHearResponse(rafaMessage.content, rafaMessage.id);
-        }, 500);
-      }
-
     } catch (err: any) {
       console.error(err);
       setMessages(prev => [
@@ -347,12 +323,12 @@ export default function ChatScreen({
     }
   };
 
-  // Silent trigger for快捷 cards
+  // Silent trigger for cards
   const handleSilentTrigger = (promptString: string) => {
     // Timeout to make sure initial welcome was fully rendered and structured
     setTimeout(() => {
       setInputText(promptString);
-      executeSendMessage(promptString, savedResponseMode || "voice");
+      executeSendMessage(promptString);
     }, 100);
   };
 
@@ -372,20 +348,6 @@ export default function ChatScreen({
 
         {/* Speed Controls for Senior accessibility */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 select-none shrink-0">
-          {savedResponseMode && (
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.removeItem("senior_chat_response_mode_v2");
-                setSavedResponseMode(null);
-              }}
-              className="text-[10px] sm:text-xs font-extrabold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer"
-              title="Clique para voltar a escolher em cada pergunta"
-            >
-              {savedResponseMode === "voice" ? "🔊 Voz" : "📝 Texto"}
-            </button>
-          )}
-
           <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-tight">Voz:</span>
           <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
             <button
@@ -481,32 +443,9 @@ export default function ChatScreen({
                 )}
                 {msg.content}
 
-                {/* Visible "Ouvir Resposta / Text-to-Speech" button matching theme */}
+                {/* Visible timestamp or spacing under message */}
                 {!isUser && (
-                  <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between">
-                    <button
-                      id={`hear-trigger-${msg.id}`}
-                      onClick={() => handleHearResponse(msg.content, msg.id)}
-                      className={`text-lg font-black py-2.5 px-4 outline-none rounded-xl flex items-center gap-2 border-2 active:scale-95 transition-all select-none ${
-                        isCurrentlySpeaking 
-                          ? "bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
-                          : "bg-teal-100 text-teal-700 border-teal-200 hover:bg-teal-200"
-                      }`}
-                      title={isCurrentlySpeaking ? "Parar leituras de voz" : "Ouvir esta dica em áudio falado"}
-                    >
-                      {isCurrentlySpeaking ? (
-                        <>
-                          <Square className="w-5 h-5 fill-red-700 shrink-0" />
-                          <span>Parar de Ouvir</span>
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 className="w-5 h-5 shrink-0 text-teal-700" />
-                          <span>Ouvir Resposta</span>
-                        </>
-                      )}
-                    </button>
-
+                  <div className="mt-2 border-t border-slate-100 pt-2 flex items-center justify-end">
                     <span className="text-slate-400 text-xs font-mono">
                       {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -632,80 +571,7 @@ export default function ChatScreen({
         </form>
       </div>
 
-      {/* Choice Modal: Hear Response or Text Only */}
-      {pendingMessageText && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-5">
-          <div className="bg-white rounded-3xl border-4 border-sky-400 p-6 space-y-6 max-w-sm shadow-2xl w-full text-center">
-            
-            <div className="space-y-2">
-              <span className="text-5xl block animate-bounce">🤔</span>
-              <h3 className="text-2xl font-black text-slate-800 leading-tight">
-                Como prefere a resposta do Prof. Rafa?
-              </h3>
-              <p className="text-slate-600 text-sm font-semibold leading-normal">
-                Você prefere que o Professor Rafa leia a resposta em voz alta ou quer apenas ler o texto de forma silenciosa?
-              </p>
-            </div>
 
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (rememberPreference) {
-                    localStorage.setItem("senior_chat_response_mode_v2", "voice");
-                    setSavedResponseMode("voice");
-                  }
-                  executeSendMessage(pendingMessageText, "voice");
-                  setPendingMessageText(null);
-                }}
-                className="w-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white py-4 px-4 rounded-2xl flex items-center justify-center gap-3 font-extrabold border-2 border-teal-800 text-lg shadow-md cursor-pointer transition-all"
-              >
-                <Volume2 className="w-6 h-6 shrink-0" />
-                <span>🗣️ Ouvir e Ler Resposta</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (rememberPreference) {
-                    localStorage.setItem("senior_chat_response_mode_v2", "text");
-                    setSavedResponseMode("text");
-                  }
-                  executeSendMessage(pendingMessageText, "text");
-                  setPendingMessageText(null);
-                }}
-                className="w-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 py-4 px-4 rounded-2xl flex items-center justify-center gap-3 font-extrabold border-2 border-slate-300 text-lg shadow-sm cursor-pointer transition-all"
-              >
-                <span>📝 Apenas Ler em Texto</span>
-              </button>
-            </div>
-
-            {/* Checkbox to remember preference */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-2 select-none text-slate-700">
-              <input
-                id="remember-pref"
-                type="checkbox"
-                checked={rememberPreference}
-                onChange={(e) => setRememberPreference(e.target.checked)}
-                className="w-5 h-5 accent-teal-600 border-2 border-slate-300 rounded-md cursor-pointer shrink-0"
-              />
-              <label htmlFor="remember-pref" className="text-sm font-bold cursor-pointer text-left leading-tight">
-                Lembrar minha escolha para as próximas perguntas
-              </label>
-            </div>
-
-            {/* Cancel Action */}
-            <button
-              type="button"
-              onClick={() => setPendingMessageText(null)}
-              className="text-slate-400 text-xs font-bold uppercase tracking-wider hover:text-slate-600 underline pt-1 block mx-auto cursor-pointer"
-            >
-              Cancelar pergunta
-            </button>
-
-          </div>
-        </div>
-      )}
 
       {/* Visual Audio Preparing Modal */}
       {isGeneratingAudio && (
