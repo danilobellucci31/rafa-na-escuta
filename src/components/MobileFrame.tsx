@@ -227,26 +227,6 @@ export default function MobileFrame({
                     </div>
                   </button>
 
-                  {/* 3. Configurações de Acessibilidade */}
-                  <button
-                    id="menu-goto-settings"
-                    onClick={() => {
-                      if (onNavigate) onNavigate("settings");
-                      setIsMenuOpen(false);
-                    }}
-                    className={`w-full p-2 rounded-xl flex items-center gap-2.5 text-left border-2 text-base font-bold transition-all cursor-pointer ${
-                      currentView === "settings"
-                        ? "bg-sky-50 border-sky-300 text-sky-950"
-                        : "bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100"
-                    }`}
-                  >
-                    <span className="text-2xl shrink-0">⚙️</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="block font-black text-xs text-slate-900 leading-tight">Opções & Letras</span>
-                      <span className="block text-[10px] font-semibold text-slate-500 leading-none mt-0.5">Mudar tamanho das letras</span>
-                    </div>
-                  </button>
-
                   {/* NEW "INSTALAR APP" BUTTON */}
                   <button
                     id="menu-install-app"

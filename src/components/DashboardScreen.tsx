@@ -6,7 +6,7 @@ interface DashboardScreenProps {
   userProfile: UserProfile;
   onStartChat: () => void;
   fontSizeLarge: boolean;
-  onNavigate: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos") => void;
+  onNavigate: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos") => void;
 }
 
 export default function DashboardScreen({
@@ -111,6 +111,32 @@ export default function DashboardScreen({
             <span className="block text-base font-black leading-tight tracking-tight">Agendamentos</span>
             <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
               Consultas & Exames
+            </span>
+          </button>
+
+          {/* 7. ALIMENTAÇÃO SAUDÁVEL */}
+          <button
+            id="topic-card-alimentacao"
+            onClick={() => onNavigate("alimentacao")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-emerald-700">🍏</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Alimentação</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Hábitos Saudáveis
+            </span>
+          </button>
+
+          {/* 8. VÍDEOS DO PROF. RAFA */}
+          <button
+            id="topic-card-videos"
+            onClick={() => onNavigate("videos")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-rose-700">🎥</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Vídeos do Rafa</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Dicas de Prática
             </span>
           </button>
 

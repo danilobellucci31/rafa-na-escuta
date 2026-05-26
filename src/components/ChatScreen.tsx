@@ -12,6 +12,29 @@ interface ChatScreenProps {
 // Browser Web Speech recognition API reference
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
+function renderFormattedMessage(content: string) {
+  if (!content) return null;
+  const lines = content.split("\n");
+  return lines.map((line, index) => {
+    const parts = line.split(/(\*\*.*?\*\*)/g);
+    return (
+      <div key={index} className="min-h-[1.25rem]">
+        {parts.map((part, pIdx) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            const boldText = part.slice(2, -2);
+            return (
+              <strong key={pIdx} className="font-extrabold text-slate-900 border-b border-dotted border-slate-300">
+                {boldText}
+              </strong>
+            );
+          }
+          return <span key={pIdx}>{part}</span>;
+        })}
+      </div>
+    );
+  });
+}
+
 export default function ChatScreen({
   userProfile,
   initialPrompt,
@@ -345,64 +368,6 @@ export default function ChatScreen({
           <ArrowLeft className="w-5 h-5 shrink-0" />
           <span>Voltar ao Início</span>
         </button>
-
-        {/* Speed Controls for Senior accessibility */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 select-none shrink-0">
-          <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-tight">Voz:</span>
-          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
-            <button
-              id="speed-slow-btn"
-              type="button"
-              onClick={() => {
-                setSpeechRate(0.8);
-                if (audioSourceRef.current) {
-                  audioSourceRef.current.playbackRate.setValueAtTime(0.8, audioCtxRef.current?.currentTime || 0);
-                }
-              }}
-              className={`px-2 py-1 rounded-md text-[10px] sm:text-xs font-bold transition-all ${
-                speechRate === 0.8
-                  ? "bg-teal-600 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              🐢 Devagar
-            </button>
-            <button
-              id="speed-normal-btn"
-              type="button"
-              onClick={() => {
-                setSpeechRate(1.0);
-                if (audioSourceRef.current) {
-                  audioSourceRef.current.playbackRate.setValueAtTime(1.0, audioCtxRef.current?.currentTime || 0);
-                }
-              }}
-              className={`px-2 py-1 rounded-md text-[10px] sm:text-xs font-bold transition-all ${
-                speechRate === 1.0
-                  ? "bg-teal-600 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              👤 Normal
-            </button>
-            <button
-              id="speed-fast-btn"
-              type="button"
-              onClick={() => {
-                setSpeechRate(1.2);
-                if (audioSourceRef.current) {
-                  audioSourceRef.current.playbackRate.setValueAtTime(1.2, audioCtxRef.current?.currentTime || 0);
-                }
-              }}
-              className={`px-2 py-1 rounded-md text-[10px] sm:text-xs font-bold transition-all ${
-                speechRate === 1.2
-                  ? "bg-teal-600 text-white shadow-xs"
-                  : "text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              ⚡ Rápido
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Voice feedback line */}
@@ -441,7 +406,7 @@ export default function ChatScreen({
                     Professor Rafa Responde:
                   </span>
                 )}
-                {msg.content}
+                {renderFormattedMessage(msg.content)}
 
                 {/* Visible timestamp or spacing under message */}
                 {!isUser && (
