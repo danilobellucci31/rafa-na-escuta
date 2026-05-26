@@ -3,12 +3,14 @@ import {
   ArrowLeft, Mic, CheckSquare, Square, Play, Pause, RefreshCw, 
   HelpCircle, CheckCircle2, Moon, Brain, Key, Dumbbell, CalendarRange, Sparkles, Smile, Sunset
 } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 interface ModuleScreenProps {
   onGoBack: () => void;
   onStartChat: (initialPrompt?: string) => void;
   fontSizeLarge: boolean;
   topicId: "exercicios" | "sono" | "memoria" | "rotina";
+  user?: any;
 }
 
 // 1. MODULE: EXERCÍCIOS (Alongamento & Caminhada)
@@ -624,47 +626,245 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
 }
 
 // 5. MODULE: REMÉDIOS (Meus Remédios Diários)
-export function RemediosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
-  const [items, setItems] = useState<{ id: string; label: string; checked: boolean; time: string }[]>(() => {
-    const local = localStorage.getItem("senior_remedios_checklist_v2");
-    if (local) {
-      try { return JSON.parse(local); } catch(e) {}
-    }
-    return [];
-  });
+export function RemediosModule({ onGoBack, onStartChat, fontSizeLarge, user: passedUser }: Omit<ModuleScreenProps, "topicId">) {
+  const [items, setItems] = useState<{ id: string; label: string; checked: boolean; time: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [dbError, setDbError] = useState<{ message: string; code?: string; table?: string } | null>(null);
 
   const [customText, setCustomText] = useState("");
   const [customTime, setCustomTime] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem("senior_remedios_checklist_v2", JSON.stringify(items));
-  }, [items]);
-
-  const toggleCheck = (id: string) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+  const getStorageKey = (userId?: string) => {
+    const activeId = userId || passedUser?.id || user?.id || "guest";
+    return `senior_remedios_checklist_v2_${activeId}`;
   };
 
-  const handleAddNewItem = (e: React.FormEvent) => {
+  const loadLocal = (userId?: string) => {
+    const key = getStorageKey(userId);
+    const local = localStorage.getItem(key);
+    if (local) {
+      try {
+        setItems(JSON.parse(local));
+        return;
+      } catch (e) {}
+    }
+    setItems([]);
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        let activeUser = passedUser;
+        if (!activeUser && isSupabaseConfigured) {
+          const { data: { user: currentUser } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+          activeUser = currentUser;
+        }
+        setUser(activeUser);
+
+        const userId = activeUser?.id || "guest";
+
+        if (isSupabaseConfigured && activeUser && !activeUser.isDemo) {
+          setLoading(true);
+          const { data, error } = await supabase
+            .from("remedios")
+            .select("*")
+            .eq("user_id", activeUser.id)
+            .order("created_at", { ascending: true });
+          
+          if (error) {
+            console.warn("Erro ao buscar remédios do Supabase, usando localStorage de backup:", error);
+            setDbError({ message: error.message, code: error.code, table: "remedios" });
+            loadLocal(activeUser.id);
+          } else {
+            setDbError(null);
+            if (data) {
+              const mapped = data.map((d: any) => ({
+                id: d.id.toString(),
+                label: d.label,
+                checked: !!d.checked,
+                time: d.time
+              }));
+              setItems(mapped);
+              localStorage.setItem(getStorageKey(activeUser.id), JSON.stringify(mapped));
+            } else {
+              loadLocal(activeUser.id);
+            }
+          }
+        } else {
+          loadLocal(userId);
+        }
+      } catch (e: any) {
+        console.error("Erro ao inicializar remédios com Supabase:", e);
+        setDbError({ message: e.message || String(e), table: "remedios" });
+        loadLocal();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [passedUser]);
+
+  // Save changes to localStorage on any state update to keep local fallback in sync
+  useEffect(() => {
+    const userId = passedUser?.id || user?.id || "guest";
+    const key = getStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(items));
+  }, [items, passedUser, user]);
+
+  const toggleCheck = async (id: string) => {
+    const targetItem = items.find(item => item.id === id);
+    if (!targetItem) return;
+    const newChecked = !targetItem.checked;
+
+    setItems(prev => prev.map(item => item.id === id ? { ...item, checked: newChecked } : item));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        // First try to match directly by string id (either string UUID or number)
+        const { error } = await supabase
+          .from("remedios")
+          .update({ checked: newChecked })
+          .eq("id", id)
+          .eq("user_id", user.id);
+        
+        if (error) {
+          // If the column types or constraints fail, try casting if id is purely numeric
+          const numericId = parseInt(id, 10);
+          if (!isNaN(numericId)) {
+            const { error: error2 } = await supabase
+              .from("remedios")
+              .update({ checked: newChecked })
+              .eq("id", numericId)
+              .eq("user_id", user.id);
+            
+            if (error2) {
+              console.warn("Erro ao registrar toggle:", error2);
+              setDbError({ message: error2.message, code: error2.code, table: "remedios" });
+            } else {
+              setDbError(null);
+            }
+          } else {
+            setDbError({ message: error.message, code: error.code, table: "remedios" });
+          }
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error("Erro ao salvar toggle no Supabase:", e);
+        setDbError({ message: e.message || String(e), table: "remedios" });
+      }
+    }
+  };
+
+  const handleAddNewItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customText.trim()) return;
     const timeVal = customTime.trim() || "Horário Livre";
-    const newItem = {
+    const labelVal = customText + " 💊";
+
+    let newItem = {
       id: "rem-custom-" + Date.now(),
-      label: customText + " 💊",
+      label: labelVal,
       checked: false,
       time: timeVal
     };
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { data, error } = await supabase
+          .from("remedios")
+          .insert({
+            user_id: user.id,
+            label: labelVal,
+            checked: false,
+            time: timeVal
+          })
+          .select();
+        
+        if (error) {
+          console.error("Erro ao inserir remédio no Supabase, salvando apenas localmente:", error);
+          setDbError({ message: error.message, code: error.code, table: "remedios" });
+        } else if (data && data[0]) {
+          setDbError(null);
+          newItem = {
+            id: data[0].id.toString(),
+            label: data[0].label,
+            checked: !!data[0].checked,
+            time: data[0].time
+          };
+        }
+      } catch (err: any) {
+        console.error("Erro ao tentar salvar remédio no Supabase:", err);
+        setDbError({ message: err.message || String(err), table: "remedios" });
+      }
+    }
+
     setItems(prev => [...prev, newItem]);
     setCustomText("");
     setCustomTime("");
   };
 
-  const clearAllChecked = () => {
+  const clearAllChecked = async () => {
     setItems(prev => prev.map(item => ({ ...item, checked: false })));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { error } = await supabase
+          .from("remedios")
+          .update({ checked: false })
+          .eq("user_id", user.id);
+        
+        if (error) {
+          console.error("Erro ao resetar tomados no Supabase:", error);
+          setDbError({ message: error.message, code: error.code, table: "remedios" });
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error(e);
+        setDbError({ message: e.message || String(e), table: "remedios" });
+      }
+    }
   };
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { error } = await supabase
+          .from("remedios")
+          .delete()
+          .eq("id", id)
+          .eq("user_id", user.id);
+        
+        if (error) {
+          const numericId = parseInt(id, 10);
+          if (!isNaN(numericId)) {
+            const { error: error2 } = await supabase
+              .from("remedios")
+              .delete()
+              .eq("id", numericId)
+              .eq("user_id", user.id);
+            
+            if (error2) {
+              setDbError({ message: error2.message, code: error2.code, table: "remedios" });
+            } else {
+              setDbError(null);
+            }
+          } else {
+            setDbError({ message: error.message, code: error.code, table: "remedios" });
+          }
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error("Erro ao deletar remedio:", e);
+        setDbError({ message: e.message || String(e), table: "remedios" });
+      }
+    }
   };
 
   return (
@@ -685,6 +885,24 @@ export function RemediosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mo
             <span>Meus Remédios</span>
           </span>
         </div>
+
+        {/* Database Sync Advisory Info */}
+        {dbError && (
+          <div className="bg-amber-50 rounded-2xl p-3 border-2 border-amber-200 text-left space-y-1 transition-all">
+            <div className="flex items-center gap-1.5 font-black text-amber-900 text-xs">
+              <span className="inline-block w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+              <span>Aviso do Supabase: Ops, falha na conexão de nuvem</span>
+            </div>
+            <p className="text-[11px] font-semibold text-slate-700 leading-tight">
+              O aplicativo continuará funcionando e salvando seus remédios localmente no aparelho, mas seu servidor informou o erro:
+              <br />
+              <code className="bg-amber-100 text-amber-900 px-1 py-0.5 rounded font-mono text-[10px] break-all">{dbError.message}</code>
+            </p>
+            <p className="text-[10px] font-bold text-slate-900 leading-tight pt-0.5">
+              💡 Dica de Correção: Verifique se você criou a tabela <code className="bg-slate-100 text-sky-800 px-1 rounded font-mono font-bold">{dbError.table}</code> no painel do seu Supabase, e se configurou as políticas RLS permitindo que usuários façam INSERT/UPDATE de seus próprios registros.
+            </p>
+          </div>
+        )}
 
         {/* Dynamic Medicines Container */}
         <div className="bg-emerald-50/50 border-2 border-emerald-100 rounded-2xl p-3 space-y-2 shadow-xs">
@@ -799,47 +1017,244 @@ export function RemediosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mo
 }
 
 // 6. MODULE: AGENDAMENTOS (Consultas & Exames)
-export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
-  const [items, setItems] = useState<{ id: string; label: string; checked: boolean; when: string }[]>(() => {
-    const local = localStorage.getItem("senior_agendamentos_checklist_v2");
-    if (local) {
-      try { return JSON.parse(local); } catch(e) {}
-    }
-    return [];
-  });
+// 6. MODULE: AGENDAMENTOS (Consultas & Exames)
+export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge, user: passedUser }: Omit<ModuleScreenProps, "topicId">) {
+  const [items, setItems] = useState<{ id: string; label: string; checked: boolean; when: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [dbError, setDbError] = useState<{ message: string; code?: string; table?: string } | null>(null);
 
   const [customText, setCustomText] = useState("");
   const [customWhen, setCustomWhen] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem("senior_agendamentos_checklist_v2", JSON.stringify(items));
-  }, [items]);
-
-  const toggleCheck = (id: string) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+  const getStorageKey = (userId?: string) => {
+    const activeId = userId || passedUser?.id || user?.id || "guest";
+    return `senior_agendamentos_checklist_v2_${activeId}`;
   };
 
-  const handleAddNewItem = (e: React.FormEvent) => {
+  const loadLocal = (userId?: string) => {
+    const key = getStorageKey(userId);
+    const local = localStorage.getItem(key);
+    if (local) {
+      try {
+        setItems(JSON.parse(local));
+        return;
+      } catch (e) {}
+    }
+    setItems([]);
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        let activeUser = passedUser;
+        if (!activeUser && isSupabaseConfigured) {
+          const { data: { user: currentUser } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+          activeUser = currentUser;
+        }
+        setUser(activeUser);
+
+        const userId = activeUser?.id || "guest";
+
+        if (isSupabaseConfigured && activeUser && !activeUser.isDemo) {
+          setLoading(true);
+          const { data, error } = await supabase
+            .from("agendamentos")
+            .select("*")
+            .eq("user_id", activeUser.id)
+            .order("created_at", { ascending: true });
+          
+          if (error) {
+            console.warn("Erro ao buscar agendamentos do Supabase, usando localStorage de backup:", error);
+            setDbError({ message: error.message, code: error.code, table: "agendamentos" });
+            loadLocal(activeUser.id);
+          } else {
+            setDbError(null);
+            if (data) {
+              const mapped = data.map((d: any) => ({
+                id: d.id.toString(),
+                label: d.label,
+                checked: !!d.checked,
+                when: d.when
+              }));
+              setItems(mapped);
+              localStorage.setItem(getStorageKey(activeUser.id), JSON.stringify(mapped));
+            } else {
+              loadLocal(activeUser.id);
+            }
+          }
+        } else {
+          loadLocal(userId);
+        }
+      } catch (e: any) {
+        console.error("Erro ao inicializar agendamentos com Supabase:", e);
+        setDbError({ message: e.message || String(e), table: "agendamentos" });
+        loadLocal();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [passedUser]);
+
+  // Save changes to localStorage on any state update to keep local fallback in sync
+  useEffect(() => {
+    const userId = passedUser?.id || user?.id || "guest";
+    const key = getStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(items));
+  }, [items, passedUser, user]);
+
+  const toggleCheck = async (id: string) => {
+    const targetItem = items.find(item => item.id === id);
+    if (!targetItem) return;
+    const newChecked = !targetItem.checked;
+
+    setItems(prev => prev.map(item => item.id === id ? { ...item, checked: newChecked } : item));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { error } = await supabase
+          .from("agendamentos")
+          .update({ checked: newChecked })
+          .eq("id", id)
+          .eq("user_id", user.id);
+        
+        if (error) {
+          const numericId = parseInt(id, 10);
+          if (!isNaN(numericId)) {
+            const { error: error2 } = await supabase
+              .from("agendamentos")
+              .update({ checked: newChecked })
+              .eq("id", numericId)
+              .eq("user_id", user.id);
+            
+            if (error2) {
+              console.warn("Erro ao registrar toggle:", error2);
+              setDbError({ message: error2.message, code: error2.code, table: "agendamentos" });
+            } else {
+              setDbError(null);
+            }
+          } else {
+            setDbError({ message: error.message, code: error.code, table: "agendamentos" });
+          }
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error("Erro ao salvar toggle no Supabase:", e);
+        setDbError({ message: e.message || String(e), table: "agendamentos" });
+      }
+    }
+  };
+
+  const handleAddNewItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customText.trim()) return;
     const whenVal = customWhen.trim() || "Em definição";
-    const newItem = {
+    const labelVal = customText + " 📅";
+
+    let newItem = {
       id: "age-custom-" + Date.now(),
-      label: customText + " 📅",
+      label: labelVal,
       checked: false,
       when: whenVal
     };
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { data, error } = await supabase
+          .from("agendamentos")
+          .insert({
+            user_id: user.id,
+            label: labelVal,
+            checked: false,
+            when: whenVal
+          })
+          .select();
+        
+        if (error) {
+          console.error("Erro ao inserir agendamento no Supabase, salvando apenas localmente:", error);
+          setDbError({ message: error.message, code: error.code, table: "agendamentos" });
+        } else if (data && data[0]) {
+          setDbError(null);
+          newItem = {
+            id: data[0].id.toString(),
+            label: data[0].label,
+            checked: !!data[0].checked,
+            when: data[0].when
+          };
+        }
+      } catch (err: any) {
+        console.error("Erro ao tentar salvar agendamento no Supabase:", err);
+        setDbError({ message: err.message || String(err), table: "agendamentos" });
+      }
+    }
+
     setItems(prev => [...prev, newItem]);
     setCustomText("");
     setCustomWhen("");
   };
 
-  const clearAllChecked = () => {
+  const clearAllChecked = async () => {
     setItems(prev => prev.map(item => ({ ...item, checked: false })));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { error } = await supabase
+          .from("agendamentos")
+          .update({ checked: false })
+          .eq("user_id", user.id);
+        
+        if (error) {
+          console.error("Erro ao resetar agendamentos no Supabase:", error);
+          setDbError({ message: error.message, code: error.code, table: "agendamentos" });
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error(e);
+        setDbError({ message: e.message || String(e), table: "agendamentos" });
+      }
+    }
   };
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
+
+    if (isSupabaseConfigured && user) {
+      try {
+        const { error } = await supabase
+          .from("agendamentos")
+          .delete()
+          .eq("id", id)
+          .eq("user_id", user.id);
+        
+        if (error) {
+          const numericId = parseInt(id, 10);
+          if (!isNaN(numericId)) {
+            const { error: error2 } = await supabase
+              .from("agendamentos")
+              .delete()
+              .eq("id", numericId)
+              .eq("user_id", user.id);
+            
+            if (error2) {
+              setDbError({ message: error2.message, code: error2.code, table: "agendamentos" });
+            } else {
+              setDbError(null);
+            }
+          } else {
+            setDbError({ message: error.message, code: error.code, table: "agendamentos" });
+          }
+        } else {
+          setDbError(null);
+        }
+      } catch (e: any) {
+        console.error("Erro ao deletar agendamento:", e);
+        setDbError({ message: e.message || String(e), table: "agendamentos" });
+      }
+    }
   };
 
   return (
@@ -860,6 +1275,24 @@ export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge }: Omi
             <span>Agendamentos</span>
           </span>
         </div>
+
+        {/* Database Sync Advisory Info */}
+        {dbError && (
+          <div className="bg-amber-50 rounded-2xl p-3 border-2 border-amber-200 text-left space-y-1 transition-all">
+            <div className="flex items-center gap-1.5 font-black text-amber-900 text-xs">
+              <span className="inline-block w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+              <span>Aviso do Supabase: Ops, falha na conexão de nuvem</span>
+            </div>
+            <p className="text-[11px] font-semibold text-slate-700 leading-tight">
+              O aplicativo continuará funcionando e salvando seus agendamentos localmente no aparelho, mas seu servidor informou o erro:
+              <br />
+              <code className="bg-amber-100 text-amber-900 px-1 py-0.5 rounded font-mono text-[10px] break-all">{dbError.message}</code>
+            </p>
+            <p className="text-[10px] font-bold text-slate-900 leading-tight pt-0.5">
+              💡 Dica de Correção: Verifique se você criou a tabela <code className="bg-slate-100 text-sky-800 px-1 rounded font-mono font-bold">{dbError.table}</code> no painel do seu Supabase, e se configurou as políticas RLS permitindo que usuários façam INSERT/UPDATE de seus próprios registros.
+            </p>
+          </div>
+        )}
 
         {/* Dynamic Appointments Container */}
         <div className="bg-sky-50/50 border-2 border-sky-100 rounded-2xl p-3 space-y-2 shadow-xs">

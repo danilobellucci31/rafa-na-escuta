@@ -114,6 +114,12 @@ export const mockAuthService = {
         isDemo: false
       };
       localStorage.setItem("rafa_user_profile", JSON.stringify(newUserProfile));
+      
+      // Attempt background save to cloud profiles or user metadata
+      mockAuthService.updateProfile(newUserProfile).catch(err => {
+        console.warn("Could not save initial profile to Supabase during sign up:", err);
+      });
+
       return { data, error: null };
     } catch (err: any) {
       if (err.message && err.message.includes("Database error saving new user")) {
@@ -174,16 +180,40 @@ export const mockAuthService = {
 
       if (error) return { data: null, error };
 
+      // Load profile metadata from user_metadata (which always exists in Supabase Auth user record)
+      const userMeta = data.user?.user_metadata || {};
+
+      // Try reading row from profiles table as backup if configured and it exists
+      let dbProfile: Partial<UserProfile> = {};
+      try {
+        const { data: profileRow } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user?.id)
+          .single();
+        if (profileRow) {
+          dbProfile = {
+            name: profileRow.name,
+            emergencyContactName: profileRow.emergency_contact_name || profileRow.emergencyContactName,
+            emergencyContactPhone: profileRow.emergency_contact_phone || profileRow.emergencyContactPhone,
+            medicalNotes: profileRow.medical_notes || profileRow.medicalNotes
+          };
+        }
+      } catch (e) {
+        // Quiet fallback
+      }
+
       // Update locally cached info or fetch
       const currentProfile: UserProfile = {
         id: data.user?.id || "",
-        name: data.user?.user_metadata?.full_name || email.split("@")[0],
+        name: dbProfile.name || userMeta.full_name || userMeta.name || email.split("@")[0],
         email: email,
-        emergencyContactName: "Familiar",
-        emergencyContactPhone: "",
-        medicalNotes: "",
+        emergencyContactName: dbProfile.emergencyContactName || userMeta.emergencyContactName || "Familiar",
+        emergencyContactPhone: dbProfile.emergencyContactPhone || userMeta.emergencyContactPhone || "",
+        medicalNotes: dbProfile.medicalNotes || userMeta.medicalNotes || "",
         isDemo: false
       };
+      
       localStorage.setItem("rafa_user_profile", JSON.stringify(currentProfile));
       return { data, error: null };
     } catch (err: any) {
@@ -198,8 +228,127 @@ export const mockAuthService = {
     }
   },
 
-  updateProfile: (profile: UserProfile): void => {
+  fetchProfile: async (userId: string): Promise<UserProfile | null> => {
+    if (!isSupabaseConfigured) return null;
+    try {
+      // First try to fetch from 'profiles' database table
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      
+      if (!error && data) {
+        return {
+          id: userId,
+          name: data.name || "",
+          email: data.email || "",
+          emergencyContactName: data.emergency_contact_name || data.emergencyContactName || "Familiar",
+          emergencyContactPhone: data.emergency_contact_phone || data.emergencyContactPhone || "",
+          medicalNotes: data.medical_notes || data.medicalNotes || "",
+          isDemo: false
+        };
+      }
+    } catch (err) {
+      console.warn("Could not load from profiles table:", err);
+    }
+    return null;
+  },
+
+  syncSession: async (): Promise<UserProfile | null> => {
+    if (!isSupabaseConfigured) return null;
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return null;
+      
+      const userMeta = user.user_metadata || {};
+      
+      // Try DB table too
+      let dbProfile: Partial<UserProfile> = {};
+      try {
+        const { data: profileRow } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        if (profileRow) {
+          dbProfile = {
+            name: profileRow.name,
+            emergencyContactName: profileRow.emergency_contact_name || profileRow.emergencyContactName,
+            emergencyContactPhone: profileRow.emergency_contact_phone || profileRow.emergencyContactPhone,
+            medicalNotes: profileRow.medical_notes || profileRow.medicalNotes
+          };
+        }
+      } catch (e) {
+        // Quiet fallback
+      }
+
+      const activeProfile: UserProfile = {
+        id: user.id,
+        name: dbProfile.name || userMeta.full_name || userMeta.name || user.email?.split("@")[0] || "Visitante",
+        email: user.email || "",
+        emergencyContactName: dbProfile.emergencyContactName || userMeta.emergencyContactName || "Familiar",
+        emergencyContactPhone: dbProfile.emergencyContactPhone || userMeta.emergencyContactPhone || "",
+        medicalNotes: dbProfile.medicalNotes || userMeta.medicalNotes || "",
+        isDemo: false
+      };
+
+      localStorage.setItem("rafa_user_profile", JSON.stringify(activeProfile));
+      return activeProfile;
+    } catch (err) {
+      console.error("Erro ao sincronizar sessão com Supabase:", err);
+      return null;
+    }
+  },
+
+  updateProfile: async (profile: UserProfile): Promise<void> => {
     localStorage.setItem("rafa_user_profile", JSON.stringify(profile));
-    // Here we can also save to public.profiles table in Supabase in future MVP phases
+    
+    if (isSupabaseConfigured && !profile.isDemo) {
+      try {
+        // 1. Update Supabase Auth user_metadata (highly guaranteed to run as long as auth is active!)
+        await supabase.auth.updateUser({
+          data: {
+            full_name: profile.name,
+            emergencyContactName: profile.emergencyContactName,
+            emergencyContactPhone: profile.emergencyContactPhone,
+            medicalNotes: profile.medicalNotes
+          }
+        });
+
+        // 2. Also try writing duplicate state inside public 'profiles' table if it exists
+        try {
+          const { error: dbError } = await supabase
+            .from("profiles")
+            .upsert({
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              emergency_contact_name: profile.emergencyContactName,
+              emergency_contact_phone: profile.emergencyContactPhone,
+              medical_notes: profile.medicalNotes,
+              updated_at: new Date().toISOString()
+            }, { onConflict: "id" });
+
+          if (dbError) {
+            // Retry with camelCase keys
+            await supabase
+              .from("profiles")
+              .upsert({
+                id: profile.id,
+                name: profile.name,
+                email: profile.email,
+                emergencyContactName: profile.emergencyContactName,
+                emergencyContactPhone: profile.emergencyContactPhone,
+                medicalNotes: profile.medicalNotes
+              }, { onConflict: "id" });
+          }
+        } catch (dbErr) {
+          console.warn("Profiles database table update skipped/unavailable:", dbErr);
+        }
+      } catch (err) {
+        console.error("Erro geral ao atualizar perfil no Supabase:", err);
+      }
+    }
   }
 };

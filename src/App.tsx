@@ -32,13 +32,26 @@ export default function App() {
     localStorage.setItem("senior_font_size_px", fontSizePx.toString());
   }, [fontSizePx]);
 
-  // Load active user profile on mount
+  // Load active user profile on mount and sync from Supabase
   useEffect(() => {
-    const savedUser = mockAuthService.getUser();
-    if (savedUser) {
-      setUser(savedUser);
-      setCurrentView("dashboard");
-    }
+    const initUser = async () => {
+      const savedUser = mockAuthService.getUser();
+      if (savedUser) {
+        setUser(savedUser);
+        setCurrentView("dashboard");
+      }
+      
+      // Attempt background cloud sync if Supabase is active
+      try {
+        const syncedUser = await mockAuthService.syncSession();
+        if (syncedUser) {
+          setUser(syncedUser);
+        }
+      } catch (err) {
+        console.warn("Could not sync profile session on boot:", err);
+      }
+    };
+    initUser();
   }, []);
 
   const handleLoginSuccess = (profile: UserProfile) => {
@@ -133,6 +146,7 @@ export default function App() {
           onGoBack={handleGoBackToDashboard}
           onStartChat={handleStartChat}
           fontSizeLarge={fontSizeLarge}
+          user={user}
         />
       )}
 
@@ -141,6 +155,7 @@ export default function App() {
           onGoBack={handleGoBackToDashboard}
           onStartChat={handleStartChat}
           fontSizeLarge={fontSizeLarge}
+          user={user}
         />
       )}
 
