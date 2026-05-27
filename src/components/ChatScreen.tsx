@@ -190,7 +190,16 @@ export default function ChatScreen({
       });
 
       if (!response.ok) {
-        throw new Error("Falha na requisição de voz.");
+        const responseText = await response.text();
+        let detail = `Status ${response.status}`;
+        try {
+          const errData = JSON.parse(responseText);
+          detail = errData.details || errData.error || detail;
+        } catch (e) {
+          let cleanText = responseText.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          detail = `${detail}: ${cleanText.substring(0, 200)}`;
+        }
+        throw new Error(detail);
       }
 
       const data = await response.json();
@@ -317,13 +326,24 @@ export default function ChatScreen({
 
       let serverErrorDetail = "";
       if (!res.ok) {
+        const responseText = await res.text();
         try {
-          const errData = await res.json();
+          const errData = JSON.parse(responseText);
           serverErrorDetail = errData.details || errData.error || "";
         } catch (e) {
-          serverErrorDetail = `Server returned status ${res.status}`;
+          let cleanText = responseText;
+          if (responseText.includes("<body") || responseText.includes("<div") || responseText.includes("<html>")) {
+            const bodyMatch = responseText.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            if (bodyMatch && bodyMatch[1]) {
+              cleanText = bodyMatch[1].replace(/<[^>]*>/g, '').trim();
+            } else {
+              cleanText = responseText.replace(/<[^>]*>/g, '').trim();
+            }
+          }
+          cleanText = cleanText.replace(/\s+/g, ' ');
+          serverErrorDetail = `HTTP ${res.status}: ${cleanText.substring(0, 300)}`;
         }
-        throw new Error(serverErrorDetail || "Resposta inválida da API do Professor Rafa.");
+        throw new Error(serverErrorDetail || `Server returned status ${res.status}`);
       }
 
       const data = await res.json();
