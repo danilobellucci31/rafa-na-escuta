@@ -194,7 +194,14 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
+const isServerless = 
+  process.env.VERCEL === "1" || 
+  !!process.env.NETLIFY || 
+  !!process.env.AWS_EXECUTION_ENV || 
+  !!process.env.LAMBDA_TASK_ROOT || 
+  process.env.RUN_STANDALONE !== "true";
+
+if (!isServerless) {
   startServer();
 }
 

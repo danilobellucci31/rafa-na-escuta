@@ -329,7 +329,11 @@ export default function ChatScreen({
         const responseText = await res.text();
         try {
           const errData = JSON.parse(responseText);
-          serverErrorDetail = errData.details || errData.error || "";
+          if (errData.error && errData.message) {
+            serverErrorDetail = `${errData.error}\n\nDetalhes: ${errData.message}\n\nRastro (Stack):\n${errData.stack || ""}\n\nEnv: ${JSON.stringify(errData.vercelEnv || {})}`;
+          } else {
+            serverErrorDetail = errData.details || errData.error || "";
+          }
         } catch (e) {
           let cleanText = responseText;
           if (responseText.includes("<body") || responseText.includes("<div") || responseText.includes("<html>")) {
