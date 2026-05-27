@@ -15,26 +15,111 @@ interface ModuleScreenProps {
 
 // 1. MODULE: EXERCÍCIOS (Alongamento & Caminhada)
 export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
-  const [completed, setCompleted] = useState<Record<string, boolean>>({
-    arms: false,
-    shoulders: false,
-    ankles: false,
-    walk: false,
+  const daysOfWeek = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"
+  ];
+  const todayIndex = new Date().getDay();
+  const todayName = daysOfWeek[todayIndex];
+
+  const allExercises = [
+    {
+      id: "stretch",
+      title: "Alongamento ao acordar (na cama) 🛌",
+      desc: "Estique os braços e pernas enquanto respira fundo 3 vezes antes de levantar da cama.",
+      timing: "Todos os dias",
+      activeDays: [0, 1, 2, 3, 4, 5, 6]
+    },
+    {
+      id: "upper-limbs",
+      title: "Membros superiores (braços, ombros, peito e costas) 🙆‍♂️",
+      desc: "Giro de ombros para trás e elevações suaves de braços para aliviar as tensões.",
+      timing: "Segunda e Quarta-feira",
+      activeDays: [1, 3]
+    },
+    {
+      id: "lower-limbs",
+      title: "Membros inferiores (bumbum, pernas e pés) 🦵",
+      desc: "Sentado firme, eleve os joelhos devagar e faça círculos suaves com os pés.",
+      timing: "Terças e Quintas-feiras",
+      activeDays: [2, 4]
+    },
+    {
+      id: "cardio-pulmonary",
+      title: "Exercícios para o coração e pulmão ❤️",
+      desc: "Respire fundo prendendo o ar por 3 segundos, depois solte devagar como se estivesse soprando uma vela.",
+      timing: "Segunda à Quinta-feira",
+      activeDays: [1, 2, 3, 4]
+    },
+    {
+      id: "choke-prevention",
+      title: "Exercícios para evitar engasgos 🗣️",
+      desc: "Bocheche o ar de um lado para o outro e faça caretas/sons em tons fortes para exercitar a deglutição.",
+      timing: "Sextas-feiras e Sábados",
+      activeDays: [5, 6]
+    },
+    {
+      id: "pelvic-floor",
+      title: "Exercícios para segurar xixi e cocô 🚽",
+      desc: "Kegel: Contraia a musculatura pélvica por 5 segundos, depois relaxe. Repita 5 vezes.",
+      timing: "Sextas-feiras e Sábados",
+      activeDays: [5, 6]
+    }
+  ];
+
+  const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
+    const local = localStorage.getItem("senior_exercicios_completed_v3");
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
   });
 
-  const exercises = [
-    { id: "arms", title: "Alongamento de Braços 🙆‍♂️", desc: "Estique cada braço para o lado por 10 segundos respirando fundo." },
-    { id: "shoulders", title: "Giro de Ombros 🔄", desc: "Faça movimentos circulares com os ombros para trás 5 vezes para relaxar." },
-    { id: "ankles", title: "Movimento com os Pés 🦶", desc: "Sentado, levante e gire o pé esquerdo, depois o direito 8 vezes." },
-    { id: "walk", title: "Caminhar no Corredor 🚶", desc: "Dê 20 passos calmos pela casa ou no quintal para acordar as pernas." },
-  ];
+  const [showOnlyToday, setShowOnlyToday] = useState(true);
+
+  // Sync state to localstorage
+  useEffect(() => {
+    localStorage.setItem("senior_exercicios_completed_v3", JSON.stringify(completed));
+  }, [completed]);
+
+  // Daily reset check
+  useEffect(() => {
+    const todayDate = new Date().toLocaleDateString("pt-BR");
+    const lastResetKey = "senior_exercicios_last_reset_date";
+    const lastResetDate = localStorage.getItem(lastResetKey);
+    if (lastResetDate && lastResetDate !== todayDate) {
+      setCompleted({});
+    }
+    localStorage.setItem(lastResetKey, todayDate);
+  }, []);
 
   const toggle = (id: string) => {
     setCompleted(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const totalCompleted = Object.values(completed).filter(Boolean).length;
-  const isAllDone = totalCompleted === exercises.length;
+  const visibleExercises = showOnlyToday 
+    ? allExercises.filter(ex => ex.activeDays.includes(todayIndex))
+    : allExercises;
+
+  const totalCompleted = visibleExercises.filter(ex => completed[ex.id]).length;
+  const isAllDone = visibleExercises.length > 0 && totalCompleted === visibleExercises.length;
+
+  const resetToday = () => {
+    const resetObj = { ...completed };
+    visibleExercises.forEach(ex => {
+      resetObj[ex.id] = false;
+    });
+    setCompleted(resetObj);
+  };
 
   return (
     <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none">
@@ -51,44 +136,79 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
           </button>
           <span className="text-xl font-black text-rose-800 tracking-tight font-display ml-1 flex items-center gap-1">
             <Dumbbell className="w-5 h-5 text-rose-600 animate-pulse-slow" />
-            <span>Exercícios</span>
+            <span>Exercícios Físicos</span>
           </span>
         </div>
 
         {/* Introduction and Goal Tracker */}
-        <div id="ex-header-card" className="bg-gradient-to-br from-rose-50 to-orange-50 border-2 border-rose-100 p-2.5 rounded-2xl space-y-0.5 text-rose-950 text-left">
-          <p className="font-bold text-xs leading-normal">
-            Alongar previne dores e melhora seu humor! Vamos tentar um pouquinho hoje?
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
+        <div id="ex-header-card" className="bg-gradient-to-br from-rose-50 to-orange-55 border-2 border-rose-100 p-2.5 rounded-2xl space-y-1 text-rose-950 text-left">
+          <div className="flex justify-between items-start gap-1">
+            <div>
+              <span className="text-[10px] font-black uppercase text-rose-700 tracking-wider">Mantenha o Corpo Ativo</span>
+              <p className="font-extrabold text-xs leading-tight">
+                Hoje é <span className="text-rose-800">{todayName}</span>. Exercitar previne dores e melhora seu dia!
+              </p>
+            </div>
+            <button
+              id="reset-ex-btn"
+              onClick={resetToday}
+              className="text-[10px] font-black bg-white hover:bg-rose-50 text-rose-800 border-2 border-rose-200/60 px-2 py-0.5 rounded-lg shadow-2xs whitespace-nowrap transition-colors"
+            >
+              Resetar
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1 border-t border-rose-200/40 pt-1">
             <span className="text-sm">🏆</span>
-            <span className="font-black text-xs">
+            <span className="font-black text-xs text-rose-900">
               {isAllDone 
-                ? "Incrível! Feito tudo hoje! 🌟" 
-                : `Objetivo Diário: ${totalCompleted} de ${exercises.length} feitos`}
+                ? "Incrível! Todos os exercícios concluídos! 🌟" 
+                : `Feitos Hoje: ${totalCompleted} de ${visibleExercises.length} exercícios`}
             </span>
           </div>
           {/* Progress Bar */}
-          <div className="w-full bg-slate-200/60 h-2 rounded-full overflow-hidden mt-0.5 border border-slate-200">
+          <div className="w-full bg-rose-100 h-2 rounded-full overflow-hidden mt-0.5 border border-rose-200/40">
             <div 
-              className="bg-rose-500 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${(totalCompleted / exercises.length) * 100}%` }}
+              className="bg-rose-600 h-full rounded-full transition-all duration-500" 
+              style={{ width: `${visibleExercises.length > 0 ? (totalCompleted / visibleExercises.length) * 100 : 0}%` }}
             />
           </div>
         </div>
 
+        {/* Filters Toggle for Senior Accessibility */}
+        <div className="flex items-center justify-between bg-slate-50 border-2 border-slate-100 p-2 rounded-xl text-left">
+          <div>
+            <span className="text-xs font-black text-slate-800">Ver exercícios de hoje</span>
+            <span className="block text-[9px] font-bold text-slate-400">Recomendados para esta {todayName.toLowerCase()}</span>
+          </div>
+          <button
+            id="toggle-filter-btn"
+            onClick={() => setShowOnlyToday(!showOnlyToday)}
+            className={`w-12 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${
+              showOnlyToday ? "bg-rose-600" : "bg-slate-300"
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform duration-300 ${
+                showOnlyToday ? "translate-x-6" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+
         {/* Exercise Checklist List */}
-        <div id="ex-checklist" className="space-y-1.5">
-          {exercises.map(ex => {
+        <div id="ex-checklist" className="space-y-1.5 max-h-[280px] overflow-y-auto pr-0.5">
+          {visibleExercises.map(ex => {
             const isDone = completed[ex.id];
+            const isRecommendedToday = ex.activeDays.includes(todayIndex);
+
             return (
               <button
                 id={`ex-chk-${ex.id}`}
                 key={ex.id}
                 onClick={() => toggle(ex.id)}
-                className={`w-full text-left p-2 rounded-xl border-2 flex items-center gap-3 transition-all cursor-pointer ${
+                className={`w-full text-left p-2.5 rounded-xl border-2 flex items-center gap-3 transition-all cursor-pointer ${
                   isDone 
-                    ? "bg-rose-50 border-rose-300 text-rose-950" 
+                    ? "bg-rose-50/70 border-rose-300 text-rose-900" 
                     : "bg-white border-slate-200 text-slate-800 hover:border-slate-300"
                 }`}
               >
@@ -96,14 +216,25 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
                   {isDone ? (
                     <CheckCircle2 className="w-5 h-5 text-rose-600 fill-rose-100" />
                   ) : (
-                    <div className="w-5 h-5 rounded border-2 border-slate-300 bg-slate-50" />
+                    <div className="w-5 h-5 rounded-md border-2 border-slate-300 bg-slate-50" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <span className={`block font-black text-sm leading-tight ${isDone ? "line-through opacity-80" : ""}`}>
-                    {ex.title}
-                  </span>
-                  <span className="block text-[11px] text-slate-500 font-semibold leading-none mt-0.5">
+                  <div className="flex justify-between items-start gap-1">
+                    <span className={`block font-black text-xs leading-tight ${isDone ? "line-through opacity-75" : ""}`}>
+                      {ex.title}
+                    </span>
+                    {!showOnlyToday && (
+                      <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full shrink-0 ${
+                        isRecommendedToday 
+                          ? "bg-rose-100 text-rose-800"
+                          : "bg-slate-100 text-slate-500"
+                      }`}>
+                        {isRecommendedToday ? "Hoje! ⭐️" : ex.timing}
+                      </span>
+                    )}
+                  </div>
+                  <span className="block text-[10px] text-slate-500 font-semibold leading-normal mt-0.5">
                     {ex.desc}
                   </span>
                 </div>
@@ -120,11 +251,11 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
         </p>
         <button
           id="ex-ask-rafa-btn"
-          onClick={() => onStartChat()}
+          onClick={() => onStartChat("Professor Rafa, preciso de orientações para fazer meus exercícios hoje de forma segura. Pode me ajudar?")}
           className="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-rose-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
-          <span>PERGUNTAR AO PROF. RAFA</span>
+          <span>PEDIR AJUDA POR VOZ</span>
         </button>
       </div>
     </div>
@@ -133,125 +264,83 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
 
 // 2. MODULE: SONO (Dormir Bem & Higiene do Sono)
 export function SonoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
-  const [breathePhase, setBreathePhase] = useState<"Click" | "Inalar" | "Segurar" | "Exalar">("Click");
-  const [seconds, setSeconds] = useState(0);
-  const [timerActive, setTimerActive] = useState(false);
-
-  useEffect(() => {
-    let interval: any;
-    if (timerActive) {
-      interval = setInterval(() => {
-        setSeconds(prev => {
-          const nextSec = prev + 1;
-          if (nextSec <= 4) {
-            setBreathePhase("Inalar");
-          } else if (nextSec <= 8) {
-            setBreathePhase("Segurar");
-          } else if (nextSec <= 12) {
-            setBreathePhase("Exalar");
-          } else {
-            return 1; // loop back to inalar or restart
-          }
-          return nextSec;
-        });
-      }, 1000);
-    } else {
-      setBreathePhase("Click");
-      setSeconds(0);
-    }
-    return () => clearInterval(interval);
-  }, [timerActive]);
-
-  const handleToggleBreathing = () => {
-    setTimerActive(!timerActive);
-    if (!timerActive) {
-      setBreathePhase("Inalar");
-      setSeconds(1);
-    }
-  };
-
   return (
     <div className="flex-1 p-3 flex flex-col justify-between space-y-2 min-h-0 select-none">
-      <div className="space-y-2">
-        {/* Module Header */}
-        <div className="flex items-center gap-1 border-b border-slate-100 pb-1">
-          <button
-            id="sono-back-btn"
-            onClick={onGoBack}
-            className="text-slate-700 hover:text-sky-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-50 rounded-lg transition-colors text-base cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5 shrink-0 text-slate-700" />
-            <span>Voltar</span>
-          </button>
-          <span className="text-xl font-black text-indigo-800 tracking-tight font-display ml-1 flex items-center gap-1">
-            <Moon className="w-5 h-5 text-indigo-600 animate-pulse-slow font-bold" />
-            <span>Sono Seguro</span>
-          </span>
-        </div>
+      {/* Module Header */}
+      <div className="flex items-center gap-1 border-b border-slate-100 pb-1 shrink-0">
+        <button
+          id="sono-back-btn"
+          onClick={onGoBack}
+          className="text-slate-700 hover:text-sky-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-50 rounded-lg transition-colors text-base cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5 shrink-0 text-slate-700" />
+          <span>Voltar</span>
+        </button>
+        <span className="text-xl font-black text-indigo-800 tracking-tight font-display ml-1 flex items-center gap-1">
+          <Moon className="w-5 h-5 text-indigo-600 animate-pulse-slow font-bold" />
+          <span>Sono Seguro</span>
+        </span>
+      </div>
 
-        {/* Breathing Assist Box */}
-        <div id="sono-breathe-player" className="bg-sky-950 text-white rounded-2xl p-3.5 text-center space-y-2 border-2 border-sky-800/80 shadow-sm">
-          <div className="text-left flex justify-between items-center border-b border-sky-800/55 pb-1">
-            <h4 className="text-sm font-black tracking-tight">Respiração Guiada 4s</h4>
-            <span className="text-indigo-300 font-bold uppercase tracking-wider text-[10px]">Apoio Sono</span>
-          </div>
-
-          {/* Interactive Breathing Bubble */}
-          <div className="flex justify-center py-1 h-20 items-center">
-            <div 
-              className={`rounded-full flex flex-col items-center justify-center transition-all duration-1000 ${
-                breathePhase === "Inalar" 
-                  ? "w-18 h-18 bg-sky-500/30 border-3 border-sky-300 scale-110" 
-                  : breathePhase === "Segurar" 
-                  ? "w-18 h-18 bg-indigo-500/40 border-3 border-indigo-300 scale-115 animate-pulse" 
-                  : breathePhase === "Exalar" 
-                  ? "w-16 h-16 bg-blue-500/20 border-3 border-blue-400 scale-90"
-                  : "w-16 h-16 bg-slate-800 border-2 border-slate-600"
-              }`}
-            >
-              <span className="text-xs font-black uppercase text-white tracking-widest">
-                {breathePhase === "Click" ? "Ligar" : breathePhase}
-              </span>
-              {timerActive && (
-                <span className="text-[10px] font-mono font-bold text-sky-200">
-                  {seconds % 4 === 0 ? 4 : seconds % 4}s
-                </span>
-              )}
+      {/* Scrollable Body Content */}
+      <div className="flex-1 overflow-y-auto space-y-4 pr-0.5 my-1">
+        {/* As Três Fases do Sono (Requested describe the three phases of sleep) */}
+        <div className="bg-indigo-50 border-2 border-indigo-150 p-3 rounded-2xl space-y-2 text-indigo-950 text-left shadow-2xs">
+          <h4 className="font-extrabold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1">
+            <span>💤</span>
+            <span>As 3 Fases Poderosas do Sono:</span>
+          </h4>
+          <div className="space-y-1.5 text-slate-800">
+            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
+              <span className="text-[9px] font-black uppercase text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md inline-block">1. Sono Leve</span>
+              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
+                Fase de relaxamento onde entramos no sono. O ritmo do coração começa a desacelerar e qualquer barulho fácil nos desperta.
+              </p>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
+              <span className="text-[9px] font-black uppercase text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md inline-block">2. Sono Profundo</span>
+              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
+                A fase da cura física! Essencial para restaurar a imunidade do corpo, renovar as células, reparar músculos e revigorar as energias.
+              </p>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
+              <span className="text-[9px] font-black uppercase text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-md inline-block">3. Sono REM (Sonhos e Memória)</span>
+              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
+                Alta atividade saudável no cérebro. É aqui que os sonhos acontecem, ajudando a fixar o aprendizado e organizar suas memórias!
+              </p>
             </div>
           </div>
+        </div>
 
-          <p className="text-sky-100/90 text-xs leading-tight font-medium">
-            {breathePhase === "Inalar" && "💨 Puxe o ar devagar pelo nariz..."}
-            {breathePhase === "Segurar" && "🛑 Segure o ar nos pulmões..."}
-            {breathePhase === "Exalar" && "🌬️ Solte todo o ar pela boca..."}
-            {breathePhase === "Click" && "Respirar com calma acalma o coração e convida o sono. Comece abaixo:"}
-          </p>
-
-          <button
-            id="sono-toggle-breathe"
-            onClick={handleToggleBreathing}
-            className={`w-full py-2 px-4 rounded-xl font-black text-sm border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              timerActive 
-                ? "bg-red-600 hover:bg-red-700 border-red-800 text-white" 
-                : "bg-sky-500 hover:bg-sky-600 border-sky-400 text-white"
-            }`}
-          >
-            {timerActive ? (
-              <>
-                <Pause className="w-4 h-4 fill-current" />
-                <span>Parar</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-current" />
-                <span>Começar Respiração</span>
-              </>
-            )}
-          </button>
+        {/* Vídeo do Sono (Requested embed Shorts video Ae7yiM4KbAg) */}
+        <div className="bg-white border-2 border-slate-200 rounded-2xl p-3.5 space-y-2 text-slate-800 text-left shadow-2xs">
+          <div className="space-y-0.5">
+            <span className="text-[9px] font-black uppercase text-rose-600 bg-rose-105 px-1.5 py-0.5 rounded-md inline-block">Vídeo de Orientações 🎥</span>
+            <h4 className="text-xs font-extrabold text-slate-850">Dica Prática: Como o Sono Funciona?</h4>
+          </div>
+          <div className="relative rounded-xl overflow-hidden shadow-sm bg-slate-950 aspect-video select-none border border-slate-200">
+            <iframe 
+              src="https://www.youtube.com/embed/Ae7yiM4KbAg" 
+              title="3 Fases do Sono Prof. Rafa" 
+              className="w-full h-full border-0 absolute top-0 left-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            />
+          </div>
+          <div className="text-center pt-0.5">
+            <a 
+              href="https://www.youtube.com/shorts/Ae7yiM4KbAg?si=x_gEYLgTVcS0XTn3" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-[10px] text-sky-600 hover:text-sky-700 underline font-black inline-flex items-center gap-1"
+            >
+              Abrir link original do YouTube ↗
+            </a>
+          </div>
         </div>
 
         {/* Rapid Soothing Sleeping Advice */}
-        <div className="bg-white border-2 border-slate-200 rounded-2xl p-3.5 space-y-1 text-slate-800 text-left">
+        <div className="bg-white border-2 border-slate-200 rounded-2xl p-3.5 space-y-1 text-slate-800 text-left shadow-2xs">
           <h4 className="font-extrabold text-sm flex items-center gap-1.5 text-indigo-900 leading-none">
             <span>🌙</span>
             <span>Dicas Preciosas para Dormir Bem:</span>
@@ -846,6 +935,8 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
   });
 
   const [customText, setCustomText] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<"De Manhã" | "De Tarde" | "De Noite" | "Especifico">("De Manhã");
+  const [customPeriodText, setCustomPeriodText] = useState("");
 
   useEffect(() => {
     localStorage.setItem("senior_routine_checklist", JSON.stringify(items));
@@ -868,14 +959,28 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
   const handleAddNewItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customText.trim()) return;
+
+    let timeLabel = "";
+    if (selectedPeriod === "De Manhã") {
+      timeLabel = "De Manhã";
+    } else if (selectedPeriod === "De Tarde") {
+      timeLabel = "De Tarde";
+    } else if (selectedPeriod === "De Noite") {
+      timeLabel = "De Noite";
+    } else {
+      timeLabel = customPeriodText.trim() || "Horário Livre";
+    }
+
     const newItem = {
       id: "custom-" + Date.now(),
       label: customText + " ✨",
       checked: false,
-      time: "Personalizado"
+      time: timeLabel
     };
     setItems(prev => [...prev, newItem]);
     setCustomText("");
+    setCustomPeriodText("");
+    setSelectedPeriod("De Manhã");
   };
 
   const clearAllChecked = () => {
@@ -917,12 +1022,12 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
               onClick={clearAllChecked}
               className="bg-white hover:bg-rose-50 text-rose-700 border border-rose-100 px-2.5 py-1 rounded-lg font-black text-[10px] shadow-xs transition-colors cursor-pointer shrink-0"
             >
-              Resetar Checklist
+              Limpar listas
             </button>
           </div>
 
           {/* Interactive list with scroll inside if needed */}
-          <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
             {items.map(item => (
               <div 
                 key={item.id} 
@@ -966,22 +1071,72 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
             ))}
           </div>
 
-          {/* New Custom reminder row */}
-          <form onSubmit={handleAddNewItem} className="flex gap-1.5 pt-0.5">
-            <input
-              id="new-routine-input"
-              type="text"
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-              placeholder="Ex: Pegar remédio..."
-              className="flex-1 text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 text-left"
-            />
+          {/* New Custom reminder form with Period Options */}
+          <form onSubmit={handleAddNewItem} className="space-y-2 pt-1.5 border-t border-sky-200/50">
+            <div className="flex flex-col gap-1 text-left">
+              <label htmlFor="new-routine-input" className="text-[10px] font-black text-slate-700 uppercase leading-none">
+                Qual tarefa ou compromisso quer somar?
+              </label>
+              <input
+                id="new-routine-input"
+                type="text"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                placeholder="Ex: Ir na igreja, Caminhada..."
+                className="w-full text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 text-left bg-white font-bold"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 text-left">
+              <span className="text-[10px] font-black text-slate-700 uppercase leading-none">Período / Horário:</span>
+              <div className="grid grid-cols-4 gap-1">
+                {(["De Manhã", "De Tarde", "De Noite", "Especifico"] as const).map((opt) => {
+                  const labelMap = {
+                    "De Manhã": "🌅 Manhã",
+                    "De Tarde": "☀️ Tarde",
+                    "De Noite": "🌙 Noite",
+                    "Especifico": "⏰ Outro"
+                  };
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSelectedPeriod(opt)}
+                      className={`py-1 px-1 text-[10px] font-extrabold rounded-lg border-2 transition-all cursor-pointer ${
+                        selectedPeriod === opt
+                          ? "bg-sky-600 text-white border-sky-800 shadow-sm"
+                          : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      {labelMap[opt]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedPeriod === "Especifico" && (
+              <div className="flex flex-col gap-1 text-left animate-in fade-in duration-300">
+                <label htmlFor="custom-period-input" className="text-[10px] font-black text-slate-600 uppercase leading-none">
+                  Digite o dia/hora:
+                </label>
+                <input
+                  id="custom-period-input"
+                  type="text"
+                  value={customPeriodText}
+                  onChange={(e) => setCustomPeriodText(e.target.value)}
+                  placeholder="Ex: Todo domingo 8h, Terça 15:00..."
+                  className="w-full text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 text-left bg-white font-bold"
+                />
+              </div>
+            )}
+
             <button
               id="add-routine-btn"
               type="submit"
-              className="bg-sky-600 hover:bg-sky-700 text-white font-black px-3 rounded-xl border border-sky-800 text-xs shadow-sm cursor-pointer whitespace-nowrap active:scale-95 transition-all"
+              className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-extrabold py-2 rounded-xl border border-sky-800 text-xs shadow-sm cursor-pointer whitespace-nowrap transition-all flex items-center justify-center gap-1"
             >
-              + Add
+              + Adicionar
             </button>
           </form>
         </div>
@@ -1437,7 +1592,7 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
               onClick={clearAllChecked}
               className="bg-white hover:bg-rose-50 text-rose-700 border border-rose-100 px-2.5 py-1 rounded-lg font-black text-[10px] shadow-xs transition-colors cursor-pointer shrink-0"
             >
-              Resetar Tomados
+              Limpar tomados
             </button>
           </div>
 
@@ -1507,14 +1662,13 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
                   className="w-full text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 text-left bg-white text-slate-800"
                 />
               </div>
-              <div className="w-20">
+              <div className="w-28">
                 <label className="block text-[9px] font-bold text-emerald-700 uppercase tracking-wide mb-0.5 leading-none text-center">Horário</label>
                 <input
                   id="new-remedio-time"
-                  type="text"
+                  type="time"
                   value={customTime}
                   onChange={(e) => setCustomTime(e.target.value)}
-                  placeholder="Ex: 08:00"
                   className="w-full text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 text-center bg-white text-slate-800"
                 />
               </div>
@@ -1605,6 +1759,45 @@ export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge, user:
 
   const [customText, setCustomText] = useState("");
   const [customWhen, setCustomWhen] = useState("");
+  const [showPastCompleted, setShowPastCompleted] = useState(false);
+  const [isPickerFocused, setIsPickerFocused] = useState(false);
+
+  const getAppointmentDate = (whenStr: string): Date | null => {
+    if (!whenStr) return null;
+    const matchPtBr = whenStr.match(/(\d{2})\/([a-zA-ZçÇ]{3})\/(\d{4})/i);
+    if (matchPtBr) {
+      const day = parseInt(matchPtBr[1], 10);
+      const monthAbbr = matchPtBr[2].toLowerCase();
+      const year = parseInt(matchPtBr[3], 10);
+      
+      const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+      const monthIndex = months.indexOf(monthAbbr);
+      
+      if (monthIndex !== -1) {
+        const timeMatch = whenStr.match(/às\s+(\d{2}):(\d{2})h/);
+        const hours = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+        const minutes = timeMatch ? parseInt(timeMatch[2], 10) : 0;
+        return new Date(year, monthIndex, day, hours, minutes);
+      }
+    }
+    const d = new Date(whenStr);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const isTodayOrFuture = (itemDate: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return itemDate >= today;
+  };
+
+  const filteredItems = items.filter(item => {
+    if (showPastCompleted) {
+      return true;
+    }
+    const itemDate = getAppointmentDate(item.when);
+    const isFuture = itemDate ? isTodayOrFuture(itemDate) : true;
+    return isFuture && !item.checked;
+  });
 
   const formatDateTimeToPtBr = (dateTimeStr: string) => {
     if (!dateTimeStr) return "Em definição";
@@ -1884,7 +2077,7 @@ export function AgendamentosModule({ onGoBack, onStartChat, fontSizeLarge, user:
   };
 
   return (
-    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none">
+    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none overflow-y-auto">
       <div className="space-y-2">
         {/* Module Header */}
         <div className="flex items-center gap-1 border-b border-slate-100 pb-1">
@@ -2004,20 +2197,26 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
             </div>
             <button
               id="clear-agendamentos-checked-btn"
-              onClick={clearAllChecked}
-              className="bg-white hover:bg-rose-50 text-rose-700 border border-rose-100 px-2.5 py-1 rounded-lg font-black text-[10px] shadow-xs transition-colors cursor-pointer shrink-0"
+              onClick={() => setShowPastCompleted(prev => !prev)}
+              className={`border px-2.5 py-1 rounded-lg font-black text-[10px] shadow-xs transition-colors cursor-pointer shrink-0 ${
+                showPastCompleted 
+                  ? "bg-sky-600 hover:bg-sky-700 text-white border-sky-700" 
+                  : "bg-white hover:bg-sky-50 text-sky-700 border-sky-100"
+              }`}
             >
-              Resetar Concluídos
+              {showPastCompleted ? "Ocultar Concluídos" : "exibir concluídos"}
             </button>
           </div>
 
           <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-            {items.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 font-bold text-xs leading-normal">
-                Nenhum agendamento cadastrado ainda.<br />Digite o compromisso e a data/hora abaixo para adicionar!
+            {filteredItems.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 font-bold text-xs leading-normal whitespace-pre-line">
+                {items.length === 0 
+                  ? "Nenhum agendamento cadastrado ainda.\nDigite o compromisso e a data/hora abaixo para adicionar!" 
+                  : "Nenhum agendamento futuro pendente."}
               </div>
             ) : (
-              items.map(item => (
+              filteredItems.map(item => (
                 <div 
                   key={item.id} 
                   className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
@@ -2059,7 +2258,7 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
           </div>
 
           {/* New Custom reminder row with compact input + time select/input */}
-          <form onSubmit={handleAddNewItem} className="space-y-2 pt-1.5 border-t border-sky-200/30 text-left">
+          <form id="add-agendamento-form" onSubmit={handleAddNewItem} className="space-y-2 pt-1.5 border-t border-sky-200/30 text-left">
             <div className="space-y-1.5">
               <div>
                 <label className="block text-[9px] font-bold text-sky-700 uppercase tracking-wide mb-0.5 leading-none">Compromisso ou Exame:</label>
@@ -2080,35 +2279,68 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
                   type="datetime-local"
                   value={customWhen}
                   onChange={(e) => setCustomWhen(e.target.value)}
+                  onFocus={() => setIsPickerFocused(true)}
+                  onClick={() => setIsPickerFocused(true)}
+                  onBlur={() => {
+                    // Use a delay to let any click/touch events propagate cleanly
+                    setTimeout(() => setIsPickerFocused(false), 500);
+                  }}
                   className="w-full text-xs px-2.5 py-1.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 bg-white text-slate-800 font-sans font-bold cursor-pointer"
                   required
                 />
               </div>
             </div>
-            <button
-              id="add-agendamento-btn"
-              type="submit"
-              className="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-1.5 rounded-xl border border-sky-800 text-xs shadow-sm cursor-pointer whitespace-nowrap active:scale-95 transition-all text-center font-sans"
-            >
-              + Adicionar Novo Compromisso
-            </button>
+            {isPickerFocused && (
+              <div className="h-72 w-full flex flex-col items-center justify-center border-2 border-dashed border-sky-300 bg-sky-50/50 rounded-2xl p-4 text-center animate-pulse transition-all duration-300 select-none">
+                <span className="text-3xl mb-1">📅</span>
+                <span className="block text-xs font-black text-sky-950">Escolha a data e hora no calendário acima</span>
+                <span className="block text-[10px] font-bold text-slate-500 mt-1">O botão foi movido para o rodapé da tela para não ser coberto!</span>
+              </div>
+            )}
+            {!isPickerFocused && (
+              <button
+                id="add-agendamento-btn"
+                type="submit"
+                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-1.5 rounded-xl border border-sky-800 text-xs shadow-sm cursor-pointer whitespace-nowrap active:scale-95 transition-all text-center font-sans"
+              >
+                + Adicionar Novo Compromisso
+              </button>
+            )}
           </form>
         </div>
       </div>
 
-      {/* Dynamic CTA with Rafa */}
+      {/* Dynamic CTA with Rafa / Submit button at bottom if calendar is open */}
       <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0">
-        <p className="text-slate-600 text-xs font-bold text-center leading-none">
-          Quer saber quais exames de rotina pedir na próxima médica?
-        </p>
-        <button
-          id="age-ask-rafa-btn"
-          onClick={() => onStartChat()}
-          className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all"
-        >
-          <Mic className="w-4 h-4 shrink-0" />
-          <span>PERGUNTAR AO PROF. RAFA</span>
-        </button>
+        {isPickerFocused ? (
+          <div className="space-y-1">
+            <p className="text-emerald-700 text-[10px] font-black text-center uppercase tracking-wider leading-none animate-pulse">
+              Calendário Aberto • Pronto para Salvar
+            </p>
+            <button
+              form="add-agendamento-form"
+              id="add-agendamento-btn-bottom"
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-emerald-800 text-xs shadow-xs cursor-pointer transition-all uppercase tracking-wider font-sans"
+            >
+              <span>+ Adicionar Novo Compromisso</span>
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-slate-600 text-xs font-bold text-center leading-none">
+              Quer saber quais exames de rotina pedir na próxima médica?
+            </p>
+            <button
+              id="age-ask-rafa-btn"
+              onClick={() => onStartChat()}
+              className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all"
+            >
+              <Mic className="w-4 h-4 shrink-0" />
+              <span>PERGUNTAR AO PROF. RAFA</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -2224,6 +2456,22 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
             <span className="text-xl animate-bounce-slow">🍏</span>
             <span>Alimentação</span>
           </span>
+        </div>
+
+        {/* Regra de Ouro Descascar mais e desembrulhar menos */}
+        <div className="bg-amber-50 border-2 border-amber-200 p-3 rounded-2xl space-y-1.5 text-left shadow-2xs">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🍌</span>
+            <div className="leading-tight">
+              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider">Regra de Ouro</span>
+              <p className="font-extrabold text-xs sm:text-sm text-amber-950">
+                "Descascar mais e desembrulhar menos!"
+              </p>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-600 font-semibold leading-normal border-t border-amber-200/50 pt-1">
+            ⚠️ <strong>Aviso Importante:</strong> Se você possui algum tipo de distúrbio alimentar, lembre-se de procurar a orientação de um médico especialista (nutricionista, endocrinologista ou nutrólogo) para um acompanhamento seguro e personalizado.
+          </p>
         </div>
 
         {/* Goal Banner */}
@@ -2637,9 +2885,16 @@ export function VideosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
               const isActive = activeVideoId === video.id;
               const isWatched = visitedVideos[video.id];
               return (
-                <button
+                <div
                   key={video.id}
                   onClick={() => setActiveVideoId(video.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setActiveVideoId(video.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                   className={`p-2.5 rounded-[18px] border-2 text-left flex items-start gap-3 transition-all cursor-pointer relative ${
                     isActive
                       ? "bg-rose-50/50 border-rose-300 shadow-sm"
@@ -2675,7 +2930,7 @@ export function VideosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
                   >
                     <CheckCircle2 className={`w-5 h-5 ${isWatched ? "text-emerald-600 fill-emerald-100" : "text-slate-300"}`} />
                   </button>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -2690,6 +2945,232 @@ export function VideosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
         <button
           id="vid-ask-rafa-btn"
           onClick={() => onStartChat("Rafa, quero fazer os alongamentos em vídeo junto com você! Pode me guiar em uma contagem?")}
+          className="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-rose-800 text-sm shadow-xs cursor-pointer transition-all"
+        >
+          <Mic className="w-4 h-4 shrink-0" />
+          <span>FALAR COM PROFESSOR RAFA</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 9. MODULE: PREVENÇÃO DE ACIDENTES (Dicas cruciais e vídeos educativos)
+export function PrevencaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
+  const topics = [
+    {
+      id: "quedas",
+      title: "Quedas",
+      emoji: "⚠️",
+      category: "Segurança em Casa",
+      color: "from-amber-500 to-orange-500",
+      desc: "Evite escorregões e tombos mantendo o caminho livre de tapetes e muito bem iluminado.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "Prefira sapatos fechados com sola de borracha antiderrapante.",
+        "Mantenha uma lâmpada ou tomada de luz piloto acesa no corredor para a noite.",
+        "Instale barras de apoio no banheiro ao lado do vaso sanitário e dentro do box.",
+        "Mantenha os fios e objetos fora das áreas de passagem mais frequentes."
+      ]
+    },
+    {
+      id: "pressao-alta",
+      title: "Pressão Alta e Exercício",
+      emoji: "❤️",
+      category: "Saúde Cardiovascular",
+      color: "from-rose-500 to-red-500",
+      desc: "Orientações importantes sobre como exercitar-se de forma segura se você tem hipertensão.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "Verifique a pressão antes de iniciar. Evite treinar se estiver acima de 14 por 9.",
+        "Comece sempre com um aquecimento leve (como caminhar devagar por 5 minutos).",
+        "Mantenha a respiração contínua: nunca prenda o ar enquanto faz força.",
+        "Se sentir tontura, dor de cabeça forte ou falta de ar, pare imediatamente."
+      ]
+    },
+    {
+      id: "glicemia-alta",
+      title: "Glicemia Alta e Exercícios",
+      emoji: "📈",
+      category: "Controle de Diabetes",
+      color: "from-pink-500 to-rose-500",
+      desc: "O que fazer quando o nível de açúcar no sangue estiver alto antes de praticar atividades.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "Se a glicemia estiver acima de 250 mg/dl, evite realizar treinos intensos no dia.",
+        "Beba bastante água fresca para ajudar os rins a eliminar o excesso de glicose.",
+        "Dê preferência a caminhadas bem leves e tranquilas se o açúcar estiver moderadamente alto.",
+        "Consulte seu médico para ajustar as doses de insulina ou remédio antes de exercícios."
+      ]
+    },
+    {
+      id: "glicemia-baixa",
+      title: "Glicemia Baixa e Exercícios",
+      emoji: "📉",
+      category: "Prevenção de Hipoglicemia",
+      color: "from-amber-650 to-yellow-500",
+      desc: "Como evitar tonturas e fraquezas graves por queda de glicose durante o esforço.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "Nunca faça exercícios físicos em jejum total.",
+        "Coma uma pequena fruta rústica ou biscoito 30 minutos antes de se movimentar.",
+        "Tenha sempre um sachê de mel ou bala de açúcar por perto para emergências.",
+        "Sinais de alerta: suor frio, tremores, tontura repentina e palpitação."
+      ]
+    },
+    {
+      id: "banho-quente",
+      title: "Banho Muito Quente no Inverno",
+      emoji: "🚿",
+      category: "Proteção Térmica",
+      color: "from-sky-500 to-indigo-500",
+      desc: "O perigo do choque térmico e quedas bruscas de pressão no banho aquecido no frio.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "A água extremamente quente gera vapor que abaixa a pressão, podendo causar desmaios.",
+        "Mantenha a temperatura regulada para morna agradável, nunca fervendo.",
+        "Evite sair do banheiro quente direto para um ambiente totalmente gelado (resfriamento brusco).",
+        "Se possível, use banquetas plásticas higiênicas antiderrapantes dentro do box para tomar banho sentado."
+      ]
+    },
+    {
+      id: "engasgos",
+      title: "Engasgos",
+      emoji: "🗣️",
+      category: "Deglutição Segura",
+      color: "from-teal-500 to-emerald-500",
+      desc: "Como se alimentar de forma calma e segura e o que fazer em caso de engasgo.",
+      videoUrl: "", // Awaiting official link
+      guidelines: [
+        "Coma sentado à mesa de forma ereta, nunca deitado ou recostado no sofá.",
+        "Corte os alimentos sólidos em pedaços bem pequenos e mastigue exaustivamente.",
+        "Evite falar ou dar risadas enquanto estiver com alimentos na boca.",
+        "Alimentos perigosos: carnes desfiadas secas, pão fresco amassado e comprimidos grandes inteiros."
+      ]
+    }
+  ];
+
+  const [activeTopicId, setActiveTopicId] = useState<string>("quedas");
+  const activeTopic = topics.find(t => t.id === activeTopicId) || topics[0];
+
+  return (
+    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none font-sans">
+      <div className="space-y-3 flex-1 overflow-y-auto pr-0.5">
+        {/* Module Header */}
+        <div className="flex items-center gap-1 border-b border-slate-100 pb-1.5">
+          <button
+            id="prev-back-btn"
+            onClick={onGoBack}
+            className="text-slate-700 hover:text-sky-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-50 rounded-lg transition-colors text-base cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 shrink-0 text-slate-700" />
+            <span>Voltar</span>
+          </button>
+          <span className="text-xl font-black text-rose-800 tracking-tight font-display ml-1 flex items-center gap-1">
+            <span className="text-xl animate-pulse">🛡️</span>
+            <span>Prevenção de Acidentes</span>
+          </span>
+        </div>
+
+        {/* Intro */}
+        <div className="bg-gradient-to-br from-rose-50 to-orange-50 border-2 border-rose-100 p-2.5 rounded-2xl space-y-1 text-slate-800 text-left shadow-xs">
+          <p className="font-extrabold text-xs leading-normal text-rose-950">
+            A prevenção é o melhor remédio para manter a sua independência ativa! Selecione uma das categorias do Prof. Rafa para ver as orientações de segurança e os vídeos educativos:
+          </p>
+        </div>
+
+        {/* ACTIVE ORIENTATIVE PLAYER & COMPAS GUIDE */}
+        <div className="bg-slate-900 rounded-[24px] p-3 text-center border-2 border-slate-800 shadow-md space-y-2.5 relative">
+          <div className="absolute top-2 left-2 bg-rose-600/90 text-white text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full z-10 animate-fade-in">
+            {activeTopic.category}
+          </div>
+
+          {/* Video Placeholder Box mimicking standard player waiting for actual sequence URL links */}
+          <div className="w-full aspect-video rounded-xl overflow-hidden shadow-inner relative bg-slate-950/90 flex flex-col items-center justify-center p-4 border border-slate-700/40">
+            {activeTopic.videoUrl ? (
+              <iframe
+                src={activeTopic.videoUrl}
+                title={activeTopic.title}
+                className="w-full h-full object-cover absolute inset-0"
+                allowFullScreen
+              />
+            ) : (
+              <div className="space-y-1.5 text-center px-2">
+                <div className="mx-auto w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-rose-450">
+                  <Play className="w-5 h-5 fill-current opacity-85 ml-0.5" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="block text-slate-200 text-[11px] font-black uppercase text-rose-400">Vídeo Educativo</span>
+                  <p className="text-slate-300 text-[10px] font-bold leading-tight">
+                    Aguardando o link de vídeo do Professor Rafa para carregar a sequência oficial aqui nesta tela!
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Guidelines under active topic */}
+          <div className="text-left space-y-1.5 pt-2 border-t border-slate-800/80">
+            <h4 className="text-slate-100 text-xs font-black leading-none">{activeTopic.emoji} Guia de Prevenção: {activeTopic.title}</h4>
+            <p className="text-slate-400 text-[10px] leading-snug font-semibold">{activeTopic.desc}</p>
+            
+            <ul className="space-y-1 pt-1.5">
+              {activeTopic.guidelines.map((line, lIdx) => (
+                <li key={lIdx} className="flex items-start gap-1.5 text-slate-300 text-[10px] font-semibold leading-normal">
+                  <span className="text-rose-500 font-bold">•</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* TOPICS ACCORDION SELECTION */}
+        <div className="space-y-1.5 text-left font-sans">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wide px-1">Temas Disponíveis:</h3>
+          <div className="grid grid-cols-1 gap-1.5">
+            {topics.map((t) => {
+              const isActive = activeTopicId === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTopicId(t.id)}
+                  className={`p-2.5 rounded-[18px] border-2 text-left flex items-start gap-3 transition-all cursor-pointer relative ${
+                    isActive
+                      ? "bg-rose-50/50 border-rose-300 shadow-sm"
+                      : "bg-white border-slate-200/80 hover:border-slate-300"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl shrink-0 bg-gradient-to-br ${t.color} text-white flex flex-col items-center justify-center text-lg shadow-2xs`}>
+                    <span>{t.emoji}</span>
+                  </div>
+
+                  <div className="flex-1 min-w-0 pr-2">
+                    <span className="block text-[8px] text-slate-400 font-extrabold leading-none mb-1 uppercase tracking-wider">
+                      {t.category}
+                    </span>
+                    <h5 className="font-extrabold text-xs text-slate-800 leading-none mb-1">
+                      {t.title}
+                    </h5>
+                    <p className="text-[10px] text-slate-500 leading-snug font-medium line-clamp-1">
+                      {t.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Dynamic CTA asking for voice help */}
+      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0 font-sans">
+        <p className="text-slate-600 text-xs font-bold text-center leading-none">
+          Quer tirar dúvidas de segurança ou pedir dicas para adaptar seu quarto/banheiro?
+        </p>
+        <button
+          id="prev-ask-rafa-btn"
+          onClick={() => onStartChat("Professor Rafa, quero dicas de como reorganizar minha casa para evitar quedas e torná-la mais segura!")}
           className="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-rose-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />

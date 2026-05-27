@@ -6,7 +6,7 @@ interface DashboardScreenProps {
   userProfile: UserProfile;
   onStartChat: () => void;
   fontSizeLarge: boolean;
-  onNavigate: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos") => void;
+  onNavigate: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos" | "prevencao") => void;
 }
 
 export default function DashboardScreen({
@@ -36,7 +36,7 @@ export default function DashboardScreen({
       <div className="space-y-1 relative shrink-0 flex-1 flex flex-col justify-center">
         <div id="topics-grid" className="grid grid-cols-2 gap-2 pb-1">
           
-          {/* 1. EXERCÍCIO */}
+          {/* 1. EXERCÍCIOS */}
           <button
             id="topic-card-exercicios"
             onClick={() => onNavigate("exercicios")}
@@ -62,59 +62,7 @@ export default function DashboardScreen({
             </span>
           </button>
 
-          {/* 3. MEMÓRIA */}
-          <button
-            id="topic-card-memoria"
-            onClick={() => onNavigate("memoria")}
-            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-950 transition-all cursor-pointer h-24 relative shadow-sm"
-          >
-            <span className="text-2xl mb-0.5 select-none text-purple-700">🧠</span>
-            <span className="block text-base font-black leading-tight tracking-tight">Memória</span>
-            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
-              Ginástica Mente
-            </span>
-          </button>
-
-          {/* 4. ROTINA */}
-          <button
-            id="topic-card-rotina"
-            onClick={() => onNavigate("rotina")}
-            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-950 transition-all cursor-pointer h-24 relative shadow-sm"
-          >
-            <span className="text-2xl mb-0.5 select-none text-orange-700">📅</span>
-            <span className="block text-base font-black leading-tight tracking-tight">Rotina</span>
-            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
-              Lembretes Diários
-            </span>
-          </button>
-
-          {/* 5. REMÉDIOS */}
-          <button
-            id="topic-card-remedios"
-            onClick={() => onNavigate("remedios")}
-            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 transition-all cursor-pointer h-24 relative shadow-sm"
-          >
-            <span className="text-2xl mb-0.5 select-none text-emerald-700">💊</span>
-            <span className="block text-base font-black leading-tight tracking-tight">Remédios</span>
-            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
-              Meus Horários
-            </span>
-          </button>
-
-          {/* 6. AGENDAMENTOS */}
-          <button
-            id="topic-card-agendamentos"
-            onClick={() => onNavigate("agendamentos")}
-            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-950 transition-all cursor-pointer h-24 relative shadow-sm"
-          >
-            <span className="text-2xl mb-0.5 select-none text-sky-700">🩺</span>
-            <span className="block text-base font-black leading-tight tracking-tight">Agendamentos</span>
-            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
-              Consultas & Exames
-            </span>
-          </button>
-
-          {/* 7. ALIMENTAÇÃO SAUDÁVEL */}
+          {/* 3. ALIMENTAÇÃO */}
           <button
             id="topic-card-alimentacao"
             onClick={() => onNavigate("alimentacao")}
@@ -127,13 +75,78 @@ export default function DashboardScreen({
             </span>
           </button>
 
-          {/* 8. VÍDEOS DO PROF. RAFA */}
+          {/* 4. PREVENÇÃO DE ACIDENTES */}
+          <button
+            id="topic-card-prevencao"
+            onClick={() => onNavigate("prevencao")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-red-200 bg-red-50 hover:bg-red-100 text-red-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-red-700 animate-pulse">🛡️</span>
+            <span className="block text-base font-black leading-tight tracking-tight text-red-900">Prevenção de acidentes</span>
+            <span className="block text-[10px] font-bold text-slate-550 mt-0.5 leading-none">
+              Dicas de Segurança
+            </span>
+          </button>
+
+          {/* 5. ROTINA */}
+          <button
+            id="topic-card-rotina"
+            onClick={() => onNavigate("rotina")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-orange-700">📅</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Rotina</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Lembretes Diários
+            </span>
+          </button>
+
+          {/* 6. REMÉDIOS */}
+          <button
+            id="topic-card-remedios"
+            onClick={() => onNavigate("remedios")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-emerald-700">💊</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Remédios</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Meus Horários
+            </span>
+          </button>
+
+          {/* 7. AGENDAMENTOS */}
+          <button
+            id="topic-card-agendamentos"
+            onClick={() => onNavigate("agendamentos")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-sky-700">🩺</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Agendamentos</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Consultas & Exames
+            </span>
+          </button>
+
+          {/* 8. MEMÓRIA */}
+          <button
+            id="topic-card-memoria"
+            onClick={() => onNavigate("memoria")}
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-950 transition-all cursor-pointer h-24 relative shadow-sm"
+          >
+            <span className="text-2xl mb-0.5 select-none text-purple-700">🧠</span>
+            <span className="block text-base font-black leading-tight tracking-tight">Memória</span>
+            <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
+              Ginástica da Mente
+            </span>
+          </button>
+
+          {/* 9. VÍDEOS DO PROF. RAFA */}
           <button
             id="topic-card-videos"
             onClick={() => onNavigate("videos")}
-            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-950 transition-all cursor-pointer h-24 relative shadow-sm"
+            className="action-card-theme rounded-[22px] p-3 flex flex-col items-center text-center justify-center border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-950 transition-all cursor-pointer h-24 relative shadow-sm col-span-2"
           >
-            <span className="text-2xl mb-0.5 select-none text-rose-700">🎥</span>
+            <span className="text-2xl mb-0.5 select-none text-rose-700 animate-pulse">🎥</span>
             <span className="block text-base font-black leading-tight tracking-tight">Vídeos do Rafa</span>
             <span className="block text-[10px] font-bold text-slate-500 mt-0.5 leading-none">
               Dicas de Prática

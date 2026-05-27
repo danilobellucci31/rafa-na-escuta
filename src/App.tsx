@@ -7,12 +7,12 @@ import DashboardScreen from "./components/DashboardScreen";
 import ChatScreen from "./components/ChatScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import SettingsScreen from "./components/SettingsScreen";
-import { ExerciciosModule, SonoModule, MemoriaModule, RotinaModule, RemediosModule, AgendamentosModule, AlimentacaoModule, VideosModule } from "./components/ModuleScreens";
+import { ExerciciosModule, SonoModule, MemoriaModule, RotinaModule, RemediosModule, AgendamentosModule, AlimentacaoModule, VideosModule, PrevencaoModule } from "./components/ModuleScreens";
 import EmergencyModal from "./components/EmergencyModal";
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentView, setCurrentView] = useState<"login" | "dashboard" | "chat" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos">("login");
+  const [currentView, setCurrentView] = useState<"login" | "dashboard" | "chat" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos" | "prevencao">("login");
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | undefined>(undefined);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [fontSizePx, setFontSizePx] = useState<number>(() => {
@@ -358,6 +358,14 @@ export default function App() {
 
       {currentView === "videos" && (
         <VideosModule
+          onGoBack={handleGoBackToDashboard}
+          onStartChat={handleStartChat}
+          fontSizeLarge={fontSizeLarge}
+        />
+      )}
+
+      {currentView === "prevencao" && (
+        <PrevencaoModule
           onGoBack={handleGoBackToDashboard}
           onStartChat={handleStartChat}
           fontSizeLarge={fontSizeLarge}
