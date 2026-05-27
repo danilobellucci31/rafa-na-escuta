@@ -315,8 +315,15 @@ export default function ChatScreen({
         body: JSON.stringify({ messages: historyPayload }),
       });
 
+      let serverErrorDetail = "";
       if (!res.ok) {
-        throw new Error("Resposta inválida da API do Professor Rafa.");
+        try {
+          const errData = await res.json();
+          serverErrorDetail = errData.details || errData.error || "";
+        } catch (e) {
+          serverErrorDetail = `Server returned status ${res.status}`;
+        }
+        throw new Error(serverErrorDetail || "Resposta inválida da API do Professor Rafa.");
       }
 
       const data = await res.json();
@@ -331,13 +338,24 @@ export default function ChatScreen({
       setMessages(prev => [...prev, rafaMessage]);
 
     } catch (err: any) {
-      console.error(err);
+      console.error("Erro na comunicação com o backend:", err);
+      const isTech = err.message && err.message !== "Resposta inválida da API do Professor Rafa." && !err.message.includes("Failed to fetch");
+      const errorContent = isTech
+        ? `Desculpe! Houve um erro técnico na conexão com a inteligência artificial do Professor Rafa. 
+
+🔍 DETALHES TÉCNICOS DO ERRO:
+\`\`\`
+${err.message}
+\`\`\`
+Por favor, verifique se a chave GEMINI_API_KEY está configurada corretamente nas variáveis de ambientee/secrets da Vercel.`
+        : "Oops! Meu sistema de escuta ficou um pouquinho instável agora. Mas não se preocupe! Tente clicar de novo ou veja se a sua internet está boa. Se precisar de algo urgente, use o botão vermelho de ajuda!";
+
       setMessages(prev => [
         ...prev,
         {
           id: "msg-error-" + Date.now(),
           sender: "rafa",
-          content: "Oops! Meu sistema de escuta ficou um pouquinho instável agora. Mas não se preocupe! Tente clicar de novo ou veja se a sua internet está boa. Se precisar de algo urgente, use o botão vermelho de ajuda!",
+          content: errorContent,
           timestamp: new Date()
         }
       ]);

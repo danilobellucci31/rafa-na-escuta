@@ -40,13 +40,18 @@ Lembre-se sempre de tomar seu remedinho no horário que seu médico passou, comb
 
 // API routes FIRST
 app.post("/api/gemini/tts", async (req, res) => {
+  const requestId = Date.now().toString(36);
+  console.log(`[TTS_INIT] [${requestId}] Received TTS request calling Gemini`);
   try {
     const { text } = req.body;
     if (!text) {
+      console.warn(`[TTS_WARN] [${requestId}] Missing text field in body`);
       return res.status(400).json({ error: "O texto para síntese de voz é obrigatório." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log(`[TTS_AUTH] [${requestId}] GEMINI_API_KEY is ${apiKey ? `present (length: ${apiKey.length})` : "undefined/empty"}`);
+
     if (!apiKey) {
       return res.status(400).json({ error: "Chave API não configurada." });
     }
@@ -68,6 +73,7 @@ app.post("/api/gemini/tts", async (req, res) => {
       .replace(/#+/g, '') // Header lines
       .replace(/-\s+/g, ' '); // Line bullet spacing
 
+    console.log(`[TTS_SEND] [${requestId}] Calling gemini-3.1-flash-tts-preview...`);
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-tts-preview",
       contents: [{ parts: [{ text: textCleaned }] }],
@@ -83,30 +89,38 @@ app.post("/api/gemini/tts", async (req, res) => {
 
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (!base64Audio) {
+      console.error(`[TTS_ERROR] [${requestId}] No audio data in model candidate list:`, JSON.stringify(response));
       throw new Error("Nenhum dado de áudio foi retornado do modelo TTS.");
     }
 
+    console.log(`[TTS_SUCCESS] [${requestId}] Audio generated successfully (${base64Audio.length} chars of base64 data)`);
     res.json({ audio: base64Audio });
   } catch (error: any) {
-    console.error("Erro na API do Gemini TTS:", error);
+    console.error(`[TTS_CRITICAL_FAIL] [${requestId}] Erro na API do Gemini TTS:`, error);
     res.status(500).json({ 
       error: "Houve um erro ao sintetizar a voz do Professor Rafa.",
-      details: error.message 
+      details: `${error.message || error}\n\nStack:\n${error.stack || "No stack trace available"}`
     });
   }
 });
 
 app.post("/api/gemini/chat", async (req, res) => {
+  const requestId = Date.now().toString(36);
+  console.log(`[CHAT_INIT] [${requestId}] Received chat conversation request`);
   try {
     const { messages } = req.body;
     
     if (!messages || !Array.isArray(messages)) {
+      console.warn(`[CHAT_WARN] [${requestId}] Formato de mensagens inválido no corpo`);
       return res.status(400).json({ error: "O formato das mensagens é inválido." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log(`[CHAT_AUTH] [${requestId}] GEMINI_API_KEY is ${apiKey ? `present (length: ${apiKey.length})` : "undefined/empty"}`);
+
     if (!apiKey) {
       // Friendly fallback if the developer hasn't set the key yet
+      console.warn(`[CHAT_WARN] [${requestId}] No API key present. Triggering fallback response info.`);
       return res.json({
         text: "Olá! Eu sou o Professor Rafa. Que bom ter você aqui! 😊 Para eu falar com você com toda minha sabedoria, lembre-se de configurar a chave do Gemini (GEMINI_API_KEY) nos segredos do seu painel. Mas enquanto isso, me diga: como está o seu dia? Eu estou pronto para ouvir você com muita paciência e carinho!"
       });
@@ -124,13 +138,13 @@ app.post("/api/gemini/chat", async (req, res) => {
 
     // Convert messages to form requested by SDK
     // In @google/genai, ai.models.generateContent accepts content structures.
-    // Let's format previous messages.
     // Each element in contents can be strings or structured objects containing parts
     const contentHistory = messages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
 
+    console.log(`[CHAT_SEND] [${requestId}] Requesting gemini-3.5-flash with history length: ${messages.length}`);
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: contentHistory,
@@ -141,13 +155,14 @@ app.post("/api/gemini/chat", async (req, res) => {
     });
 
     const responseText = response.text || "Desculpe, não consegui processar sua resposta no momento. Pode repetir para mim?";
+    console.log(`[CHAT_SUCCESS] [${requestId}] Gemini responded successfully with text length: ${responseText.length}`);
     
     res.json({ text: responseText });
   } catch (error: any) {
-    console.error("Erro na API do Gemini:", error);
+    console.error(`[CHAT_CRITICAL_FAIL] [${requestId}] Erro na API do Gemini:`, error);
     res.status(500).json({ 
       error: "Houve um erro ao conversar com o Professor Rafa.",
-      details: error.message 
+      details: `${error.message || error}\n\nStack:\n${error.stack || "No stack trace available"}`
     });
   }
 });
