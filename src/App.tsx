@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { UserProfile } from "./types";
 import { mockAuthService, supabase, isSupabaseConfigured } from "./lib/supabase";
 import MobileFrame from "./components/MobileFrame";
+import LandingScreen from "./components/LandingScreen";
 import LoginScreen from "./components/LoginScreen";
 import DashboardScreen from "./components/DashboardScreen";
 import ChatScreen from "./components/ChatScreen";
@@ -12,13 +13,13 @@ import EmergencyModal from "./components/EmergencyModal";
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentView, setCurrentView] = useState<"login" | "dashboard" | "chat" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos" | "prevencao">("login");
+  const [currentView, setCurrentView] = useState<"landing" | "login" | "dashboard" | "chat" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina" | "remedios" | "agendamentos" | "alimentacao" | "videos" | "prevencao">("landing");
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string | undefined>(undefined);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [fontSizePx, setFontSizePx] = useState<number>(() => {
     const cached = localStorage.getItem("senior_font_size_px");
     if (cached) return parseInt(cached, 10);
-    return 18; // Default comfortable font size for older adults
+    return 12; // Minimum zoom level
   });
 
   const fontSizeLarge = fontSizePx >= 20;
@@ -251,7 +252,7 @@ export default function App() {
   const handleLogout = async () => {
     await mockAuthService.signOut();
     setUser(null);
-    setCurrentView("login");
+    setCurrentView("landing");
   };
 
   const handleStartChat = (initialPrompt?: string) => {
@@ -282,6 +283,13 @@ export default function App() {
       onNavigate={(view) => setCurrentView(view)}
     >
       {/* Animated Screen Router */}
+      {currentView === "landing" && (
+        <LandingScreen 
+          onNavigate={(view) => setCurrentView(view)} 
+          fontSizeLarge={fontSizeLarge}
+        />
+      )}
+
       {currentView === "login" && (
         <LoginScreen 
           onLoginSuccess={handleLoginSuccess} 

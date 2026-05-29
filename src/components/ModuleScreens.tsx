@@ -33,42 +33,102 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
       title: "Alongamento ao acordar (na cama) 🛌",
       desc: "Estique os braços e pernas enquanto respira fundo 3 vezes antes de levantar da cama.",
       timing: "Todos os dias",
-      activeDays: [0, 1, 2, 3, 4, 5, 6]
+      activeDays: [0, 1, 2, 3, 4, 5, 6],
+      emoji: "🛌",
+      videoUrl: "https://www.youtube.com/embed/kSktihO1CrY",
+      color: "from-rose-500 to-orange-500",
+      category: "Alongamento",
+      guidelines: [
+        "Estique os braços bem acima da cabeça ainda deitado.",
+        "Puxe um joelho de cada vez em direção ao peito e segure por 10 segundos.",
+        "Respire fundo pelo nariz e solte lentamente pela boca 3 vezes.",
+        "Sente-se devagar na beira da cama antes de ficar em pé."
+      ]
     },
     {
       id: "upper-limbs",
       title: "Membros superiores (braços, ombros, peito e costas) 🙆‍♂️",
       desc: "Giro de ombros para trás e elevações suaves de braços para aliviar as tensões.",
       timing: "Segunda e Quarta-feira",
-      activeDays: [1, 3]
+      activeDays: [1, 3],
+      emoji: "🙆‍♂️",
+      videoUrl: "https://www.youtube.com/embed/QI8Mk0ZgDkg",
+      color: "from-teal-500 to-emerald-500",
+      category: "Fortalecimento",
+      guidelines: [
+        "Gire os ombros para trás 10 vezes em movimentos circulares suaves.",
+        "Eleve os braços para os lados até a altura dos ombros e desça devagar.",
+        "Entrelace os dedos e empurre os braços para a frente, alongando as costas.",
+        "Faça os movimentos sentado e mantenha a coluna bem ereta."
+      ]
     },
     {
       id: "lower-limbs",
       title: "Membros inferiores (bumbum, pernas e pés) 🦵",
       desc: "Sentado firme, eleve os joelhos devagar e faça círculos suaves com os pés.",
       timing: "Terças e Quintas-feiras",
-      activeDays: [2, 4]
+      activeDays: [2, 4],
+      emoji: "🦵",
+      videoUrl: "https://www.youtube.com/embed/QI8Mk0ZgDkg",
+      color: "from-amber-500 to-orange-500",
+      category: "Mobilidade",
+      guidelines: [
+        "Sentado firme em uma cadeira, levante um joelho de cada vez alternadamente.",
+        "Estique uma perna para a frente e gire o pé suavemente para a esquerda e direita.",
+        "Abra e feche os dedos dos pés para estimular a circulação de retorno.",
+        "Apoie-se em uma parede ou cadeira firme se for fazer em pé."
+      ]
     },
     {
       id: "cardio-pulmonary",
       title: "Exercícios para o coração e pulmão ❤️",
       desc: "Respire fundo prendendo o ar por 3 segundos, depois solte devagar como se estivesse soprando uma vela.",
       timing: "Segunda à Quinta-feira",
-      activeDays: [1, 2, 3, 4]
+      activeDays: [1, 2, 3, 4],
+      emoji: "❤️",
+      videoUrl: "https://www.youtube.com/embed/CR61Cof1W-Q",
+      color: "from-sky-500 to-indigo-500",
+      category: "Respiração",
+      guidelines: [
+        "Respire profundamente pelo nariz inflando o abdômen por 3 segundos.",
+        "Prenda o ar por outros 3 segundos de forma confortável.",
+        "Sopre o ar lentamente pelos lábios semi-fechados (como soprando uma vela).",
+        "Repita esse ciclo respiratório de 5 a 10 vezes para ajudar os pulmões."
+      ]
     },
     {
       id: "choke-prevention",
       title: "Exercícios para evitar engasgos 🗣️",
       desc: "Bocheche o ar de um lado para o outro e faça caretas/sons em tons fortes para exercitar a deglutição.",
       timing: "Sextas-feiras e Sábados",
-      activeDays: [5, 6]
+      activeDays: [5, 6],
+      emoji: "🗣️",
+      videoUrl: "https://www.youtube.com/embed/VCAx5JHkSLE",
+      color: "from-purple-500 to-pink-500",
+      category: "Comunicação e Deglutição",
+      guidelines: [
+        "Encha as bochechas de ar e passe o ar de um lado para o outro 10 vezes.",
+        "Faça caretas abrindo bem a boca e pronunciando as vogais 'A, E, I, O, U'.",
+        "Engula a saliva com a cabeça levemente inclinada para a frente.",
+        "Estes movimentos fortalecem os órgãos da mastigação e engasgo."
+      ]
     },
     {
       id: "pelvic-floor",
       title: "Exercícios para segurar xixi e cocô 🚽",
       desc: "Kegel: Contraia a musculatura pélvica por 5 segundos, depois relaxe. Repita 5 vezes.",
       timing: "Sextas-feiras e Sábados",
-      activeDays: [5, 6]
+      activeDays: [5, 6],
+      emoji: "🚽",
+      videoUrl: "https://www.youtube.com/embed/CR61Cof1W-Q",
+      color: "from-indigo-500 to-pink-500",
+      category: "Assoalho Pélvico",
+      guidelines: [
+        "Identifique os músculos que você usa para segurar o fluxo de urina.",
+        "Contraia esses músculos firmemente por 5 segundos de forma isolada.",
+        "Relaxe e descanse por 5 segundos.",
+        "Faça 5 repetições respirando de forma normal e suave."
+      ]
     }
   ];
 
@@ -84,7 +144,8 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
     return {};
   });
 
-  const [showOnlyToday, setShowOnlyToday] = useState(true);
+  const [showOnlyToday, setShowOnlyToday] = useState(false);
+  const [activeExerciseId, setActiveExerciseId] = useState<string>("stretch");
 
   // Sync state to localstorage
   useEffect(() => {
@@ -110,6 +171,15 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
     ? allExercises.filter(ex => ex.activeDays.includes(todayIndex))
     : allExercises;
 
+  // Auto-select fallback if active exercise is filtered out
+  useEffect(() => {
+    if (visibleExercises.length > 0 && !visibleExercises.some(ex => ex.id === activeExerciseId)) {
+      setActiveExerciseId(visibleExercises[0].id);
+    }
+  }, [visibleExercises, activeExerciseId]);
+
+  const activeExercise = allExercises.find(ex => ex.id === activeExerciseId) || allExercises[0];
+
   const totalCompleted = visibleExercises.filter(ex => completed[ex.id]).length;
   const isAllDone = visibleExercises.length > 0 && totalCompleted === visibleExercises.length;
 
@@ -122,10 +192,10 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
   };
 
   return (
-    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none">
-      <div className="space-y-2">
+    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none font-sans">
+      <div className="space-y-3 flex-1 overflow-y-auto pr-0.5">
         {/* Module Header */}
-        <div className="flex items-center gap-1 border-b border-slate-100 pb-1.5">
+        <div className="flex items-center gap-1 border-b border-slate-100 pb-1.5 font-sans">
           <button
             id="ex-back-btn"
             onClick={onGoBack}
@@ -140,112 +210,102 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
           </span>
         </div>
 
-        {/* Introduction and Goal Tracker */}
-        <div id="ex-header-card" className="bg-gradient-to-br from-rose-50 to-orange-55 border-2 border-rose-100 p-2.5 rounded-2xl space-y-1 text-rose-950 text-left">
-          <div className="flex justify-between items-start gap-1">
-            <div>
-              <span className="text-[10px] font-black uppercase text-rose-700 tracking-wider">Mantenha o Corpo Ativo</span>
-              <p className="font-extrabold text-xs leading-tight">
-                Hoje é <span className="text-rose-800">{todayName}</span>. Exercitar previne dores e melhora seu dia!
-              </p>
-            </div>
-            <button
-              id="reset-ex-btn"
-              onClick={resetToday}
-              className="text-[10px] font-black bg-white hover:bg-rose-50 text-rose-800 border-2 border-rose-200/60 px-2 py-0.5 rounded-lg shadow-2xs whitespace-nowrap transition-colors"
-            >
-              Resetar
-            </button>
+        {/* ACTIVE ORIENTATIVE PLAYER & COMPAS GUIDE (IDENTICAL TO PREVENÇÃO MODULE) */}
+        <div className="bg-slate-900 rounded-[24px] p-3 text-center border-2 border-slate-800 shadow-md space-y-2.5 relative font-sans">
+          <div className="absolute top-2 left-2 bg-rose-600/90 text-white text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full z-10 animate-fade-in">
+            {activeExercise.category}
           </div>
-          <div className="flex items-center gap-1.5 mt-1 border-t border-rose-200/40 pt-1">
-            <span className="text-sm">🏆</span>
-            <span className="font-black text-xs text-rose-900">
-              {isAllDone 
-                ? "Incrível! Todos os exercícios concluídos! 🌟" 
-                : `Feitos Hoje: ${totalCompleted} de ${visibleExercises.length} exercícios`}
-            </span>
-          </div>
-          {/* Progress Bar */}
-          <div className="w-full bg-rose-100 h-2 rounded-full overflow-hidden mt-0.5 border border-rose-200/40">
-            <div 
-              className="bg-rose-600 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${visibleExercises.length > 0 ? (totalCompleted / visibleExercises.length) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
 
-        {/* Filters Toggle for Senior Accessibility */}
-        <div className="flex items-center justify-between bg-slate-50 border-2 border-slate-100 p-2 rounded-xl text-left">
-          <div>
-            <span className="text-xs font-black text-slate-800">Ver exercícios de hoje</span>
-            <span className="block text-[9px] font-bold text-slate-400">Recomendados para esta {todayName.toLowerCase()}</span>
+          {/* Video Container */}
+          <div className="w-full aspect-video rounded-xl overflow-hidden shadow-inner relative bg-slate-950/90 flex flex-col items-center justify-center p-4 border border-slate-700/40">
+            {activeExercise.videoUrl ? (
+              <iframe
+                src={activeExercise.videoUrl}
+                title={activeExercise.title}
+                className="w-full h-full object-cover absolute inset-0"
+                allowFullScreen
+              />
+            ) : (
+              <div className="space-y-1.5 text-center px-2">
+                <div className="mx-auto w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-rose-455">
+                  <Play className="w-5 h-5 fill-current opacity-85 ml-0.5 text-rose-500" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="block text-slate-200 text-[11px] font-black uppercase text-rose-450">Vídeo de Treinamento</span>
+                  <p className="text-slate-300 text-[10px] font-bold leading-tight">
+                    Nenhum vídeo disponível no momento.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <button
-            id="toggle-filter-btn"
-            onClick={() => setShowOnlyToday(!showOnlyToday)}
-            className={`w-12 h-6 rounded-full p-0.5 transition-colors cursor-pointer ${
-              showOnlyToday ? "bg-rose-600" : "bg-slate-300"
-            }`}
-          >
-            <div
-              className={`w-5 h-5 rounded-full bg-white shadow-md transform duration-300 ${
-                showOnlyToday ? "translate-x-6" : "translate-x-0"
-              }`}
-            />
-          </button>
-        </div>
 
-        {/* Exercise Checklist List */}
-        <div id="ex-checklist" className="space-y-1.5 max-h-[280px] overflow-y-auto pr-0.5">
-          {visibleExercises.map(ex => {
-            const isDone = completed[ex.id];
-            const isRecommendedToday = ex.activeDays.includes(todayIndex);
-
-            return (
+          {/* Guidelines under active exercise */}
+          <div className="text-left space-y-1.5 pt-2 border-t border-slate-800/80 font-sans">
+            <div className="flex justify-between items-center gap-2">
+              <h4 className="text-slate-100 text-[11px] font-black leading-tight flex-1">{activeExercise.emoji} Exercício: {activeExercise.title}</h4>
               <button
-                id={`ex-chk-${ex.id}`}
-                key={ex.id}
-                onClick={() => toggle(ex.id)}
-                className={`w-full text-left p-2.5 rounded-xl border-2 flex items-center gap-3 transition-all cursor-pointer ${
-                  isDone 
-                    ? "bg-rose-50/70 border-rose-300 text-rose-900" 
-                    : "bg-white border-slate-200 text-slate-800 hover:border-slate-300"
+                onClick={() => toggle(activeExercise.id)}
+                className={`text-[10px] font-black px-2.5 py-1 rounded-xl shadow-2xs whitespace-nowrap transition-colors cursor-pointer border ${
+                  completed[activeExercise.id]
+                    ? "bg-rose-600 text-white border-rose-700"
+                    : "bg-white text-slate-800 border-slate-300 hover:bg-slate-50"
                 }`}
               >
-                <div className="shrink-0">
-                  {isDone ? (
-                    <CheckCircle2 className="w-5 h-5 text-rose-600 fill-rose-100" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-md border-2 border-slate-300 bg-slate-50" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start gap-1">
-                    <span className={`block font-black text-xs leading-tight ${isDone ? "line-through opacity-75" : ""}`}>
-                      {ex.title}
-                    </span>
-                    {!showOnlyToday && (
-                      <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full shrink-0 ${
-                        isRecommendedToday 
-                          ? "bg-rose-100 text-rose-800"
-                          : "bg-slate-100 text-slate-500"
-                      }`}>
-                        {isRecommendedToday ? "Hoje! ⭐️" : ex.timing}
-                      </span>
-                    )}
-                  </div>
-                  <span className="block text-[10px] text-slate-500 font-semibold leading-normal mt-0.5">
-                    {ex.desc}
-                  </span>
-                </div>
+                {completed[activeExercise.id] ? "✓ Feito!" : "Marcar como Feito"}
               </button>
-            );
-          })}
+            </div>
+          </div>
+        </div>
+
+        {/* SECTOR FOR EXERCISE SELECTION LIST (IDENTICAL TO PREVENÇÃO TOPICS ACCORDION SELECTION) */}
+        <div className="space-y-1.5 text-left font-sans">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wide px-1">Exercícios Disponíveis:</h3>
+          <div className="grid grid-cols-1 gap-1.5">
+            {visibleExercises.map((ex) => {
+              const isActive = activeExerciseId === ex.id;
+              const isDone = completed[ex.id];
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => setActiveExerciseId(ex.id)}
+                  className={`p-2.5 rounded-[18px] border-2 text-left flex items-start gap-3 transition-all cursor-pointer relative ${
+                    isActive
+                      ? "bg-rose-50/50 border-rose-300 shadow-sm"
+                      : "bg-white border-slate-200/80 hover:border-slate-300"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl shrink-0 bg-gradient-to-br ${ex.color} text-white flex flex-col items-center justify-center text-lg shadow-2xs`}>
+                    <span>{ex.emoji}</span>
+                  </div>
+
+                  <div className="flex-1 min-w-0 pr-2 font-sans">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="block text-[8px] text-slate-400 font-extrabold leading-none uppercase tracking-wider">
+                        {ex.category}
+                      </span>
+                      {isDone && (
+                        <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full inline-block">
+                          ✓ Concluído
+                        </span>
+                      )}
+                    </div>
+                    <h5 className={`font-extrabold text-xs text-slate-800 leading-none mb-1 ${isDone ? "line-through opacity-75 text-slate-405" : ""}`}>
+                      {ex.title}
+                    </h5>
+                    <p className="text-[10px] text-slate-500 leading-snug font-medium line-clamp-1">
+                      {ex.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Dynamic CTA with Rafa */}
-      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0">
+      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0 font-sans">
         <p className="text-slate-600 text-xs font-bold text-center leading-none">
           Tem alguma dor ou quer sugestão de outro exercício?
         </p>
@@ -255,7 +315,7 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
           className="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-rose-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
-          <span>PEDIR AJUDA POR VOZ</span>
+          <span>FALAR COM O PROFESSOR RAFA</span>
         </button>
       </div>
     </div>
@@ -264,105 +324,120 @@ export function ExerciciosModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<
 
 // 2. MODULE: SONO (Dormir Bem & Higiene do Sono)
 export function SonoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
+  const sleepVideos = [
+    {
+      id: "como-dormir-bem",
+      title: "Como Dormir Bem e Acordar Disposto",
+      emoji: "😴",
+      category: "Higiene do Sono",
+      color: "from-indigo-500 to-purple-500",
+      desc: "Entenda boas práticas e hábitos simples para regular seu sono de maneira natural.",
+      videoUrl: "https://www.youtube.com/embed/Ae7yiM4KbAg"
+    },
+    {
+      id: "ambiente-seguro",
+      title: "Criando um Quarto Seguro e Acolhedor",
+      emoji: "🛌",
+      category: "Qualidade do Sono",
+      color: "from-blue-500 to-indigo-600",
+      desc: "Como organizar seu quarto e fazer uma rotina de relaxamento antes de dormir.",
+      videoUrl: "" // Awaiting official link
+    }
+  ];
+
+  const [activeVideoId, setActiveVideoId] = useState<string>("como-dormir-bem");
+  const activeVideo = sleepVideos.find(v => v.id === activeVideoId) || sleepVideos[0];
+
   return (
-    <div className="flex-1 p-3 flex flex-col justify-between space-y-2 min-h-0 select-none">
-      {/* Module Header */}
-      <div className="flex items-center gap-1 border-b border-slate-100 pb-1 shrink-0">
-        <button
-          id="sono-back-btn"
-          onClick={onGoBack}
-          className="text-slate-700 hover:text-sky-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-50 rounded-lg transition-colors text-base cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5 shrink-0 text-slate-700" />
-          <span>Voltar</span>
-        </button>
-        <span className="text-xl font-black text-indigo-800 tracking-tight font-display ml-1 flex items-center gap-1">
-          <Moon className="w-5 h-5 text-indigo-600 animate-pulse-slow font-bold" />
-          <span>Sono Seguro</span>
-        </span>
-      </div>
+    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none font-sans">
+      <div className="space-y-3 flex-1 overflow-y-auto pr-0.5">
+        {/* Module Header */}
+        <div className="flex items-center gap-1 border-b border-slate-100 pb-1.5">
+          <button
+            id="sono-back-btn"
+            onClick={onGoBack}
+            className="text-slate-700 hover:text-sky-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-50 rounded-lg transition-colors text-base cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 shrink-0 text-slate-700" />
+            <span>Voltar</span>
+          </button>
+          <span className="text-xl font-black text-indigo-800 tracking-tight font-display ml-1 flex items-center gap-1">
+            <Moon className="w-5 h-5 text-indigo-600 animate-pulse-slow font-bold" />
+            <span>Sono Seguro</span>
+          </span>
+        </div>
 
-      {/* Scrollable Body Content */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-0.5 my-1">
-        {/* As Três Fases do Sono (Requested describe the three phases of sleep) */}
-        <div className="bg-indigo-50 border-2 border-indigo-150 p-3 rounded-2xl space-y-2 text-indigo-950 text-left shadow-2xs">
-          <h4 className="font-extrabold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1">
-            <span>💤</span>
-            <span>As 3 Fases Poderosas do Sono:</span>
-          </h4>
-          <div className="space-y-1.5 text-slate-800">
-            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
-              <span className="text-[9px] font-black uppercase text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md inline-block">1. Sono Leve</span>
-              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
-                Fase de relaxamento onde entramos no sono. O ritmo do coração começa a desacelerar e qualquer barulho fácil nos desperta.
-              </p>
-            </div>
-            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
-              <span className="text-[9px] font-black uppercase text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md inline-block">2. Sono Profundo</span>
-              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
-                A fase da cura física! Essencial para restaurar a imunidade do corpo, renovar as células, reparar músculos e revigorar as energias.
-              </p>
-            </div>
-            <div className="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-3xs">
-              <span className="text-[9px] font-black uppercase text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-md inline-block">3. Sono REM (Sonhos e Memória)</span>
-              <p className="text-xs font-bold text-slate-700 mt-0.5 leading-snug">
-                Alta atividade saudável no cérebro. É aqui que os sonhos acontecem, ajudando a fixar o aprendizado e organizar suas memórias!
-              </p>
-            </div>
+        {/* ACTIVE ORIENTATIVE PLAYER & COMPAS GUIDE */}
+        <div className="bg-slate-900 rounded-[24px] p-3 text-center border-2 border-slate-800 shadow-md space-y-2.5 relative">
+          <div className="absolute top-2 left-2 bg-indigo-600/90 text-white text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full z-10 animate-fade-in">
+            {activeVideo.category}
+          </div>
+
+          {/* Video Player or Placeholder Box */}
+          <div className="w-full aspect-video rounded-xl overflow-hidden shadow-inner relative bg-slate-950/90 flex flex-col items-center justify-center p-4 border border-slate-700/40">
+            {activeVideo.videoUrl ? (
+              <iframe
+                src={activeVideo.videoUrl}
+                title={activeVideo.title}
+                className="w-full h-full object-cover absolute inset-0"
+                allowFullScreen
+              />
+            ) : (
+              <div className="space-y-1.5 text-center px-2">
+                <div className="mx-auto w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-indigo-400">
+                  <Play className="w-5 h-5 fill-current opacity-85 ml-0.5" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="block text-slate-200 text-[11px] font-black uppercase text-indigo-400">Vídeo de Sono</span>
+                  <p className="text-slate-300 text-[10px] font-bold leading-tight">
+                    Aguardando o link de vídeo do Professor Rafa para carregar a sequência oficial aqui nesta tela!
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Guidelines under active video */}
+          <div className="text-left space-y-1.5 pt-2 border-t border-slate-800/80">
+            <h4 className="text-slate-100 text-xs font-black leading-none">{activeVideo.emoji} {activeVideo.title}</h4>
           </div>
         </div>
 
-        {/* Vídeo do Sono (Requested embed Shorts video Ae7yiM4KbAg) */}
-        <div className="bg-white border-2 border-slate-200 rounded-2xl p-3.5 space-y-2 text-slate-800 text-left shadow-2xs">
-          <div className="space-y-0.5">
-            <span className="text-[9px] font-black uppercase text-rose-600 bg-rose-105 px-1.5 py-0.5 rounded-md inline-block">Vídeo de Orientações 🎥</span>
-            <h4 className="text-xs font-extrabold text-slate-850">Dica Prática: Como o Sono Funciona?</h4>
-          </div>
-          <div className="relative rounded-xl overflow-hidden shadow-sm bg-slate-950 aspect-video select-none border border-slate-200">
-            <iframe 
-              src="https://www.youtube.com/embed/Ae7yiM4KbAg" 
-              title="3 Fases do Sono Prof. Rafa" 
-              className="w-full h-full border-0 absolute top-0 left-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              allowFullScreen
-            />
-          </div>
-          <div className="text-center pt-0.5">
-            <a 
-              href="https://www.youtube.com/shorts/Ae7yiM4KbAg?si=x_gEYLgTVcS0XTn3" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-[10px] text-sky-600 hover:text-sky-700 underline font-black inline-flex items-center gap-1"
-            >
-              Abrir link original do YouTube ↗
-            </a>
-          </div>
-        </div>
+        {/* VIDEOS ACCORDION SELECTION */}
+        <div className="space-y-1.5 text-left font-sans">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wide px-1">Vídeos Disponíveis:</h3>
+          <div className="grid grid-cols-1 gap-1.5">
+            {sleepVideos.map((v) => {
+              const isActive = activeVideoId === v.id;
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => setActiveVideoId(v.id)}
+                  className={`p-2.5 rounded-[18px] border-2 text-left flex items-start gap-3 transition-all cursor-pointer relative ${
+                    isActive
+                      ? "bg-indigo-50/50 border-indigo-300 shadow-sm"
+                      : "bg-white border-slate-200/80 hover:border-slate-300"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl shrink-0 bg-gradient-to-br ${v.color} text-white flex flex-col items-center justify-center text-lg shadow-2xs`}>
+                    <span>{v.emoji}</span>
+                  </div>
 
-        {/* Rapid Soothing Sleeping Advice */}
-        <div className="bg-white border-2 border-slate-200 rounded-2xl p-3.5 space-y-1 text-slate-800 text-left shadow-2xs">
-          <h4 className="font-extrabold text-sm flex items-center gap-1.5 text-indigo-900 leading-none">
-            <span>🌙</span>
-            <span>Dicas Preciosas para Dormir Bem:</span>
-          </h4>
-          <ul className="space-y-1 text-xs font-semibold text-slate-600 leading-snug">
-            <li className="flex items-start gap-1">
-              <span className="text-rose-500">☕</span>
-              <span>Evite café, refrigerantes ou chá preto após as 14:00 da tarde.</span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-indigo-500">⏰</span>
-              <span>Devemos dormir 8h por dia para manter o corpo e cérebro saudáveis.</span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-amber-500">💡</span>
-              <span>Ao entardecer, use luzes amarelas fracas no quarto.</span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-sky-500">📺</span>
-              <span>Desligue a televisão 30 minutos antes de deitar.</span>
-            </li>
-          </ul>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <span className="block text-[8px] text-slate-400 font-extrabold leading-none mb-1 uppercase tracking-wider">
+                      {v.category}
+                    </span>
+                    <h5 className="font-extrabold text-xs text-slate-800 leading-none mb-1">
+                      {v.title}
+                    </h5>
+                    <p className="text-[10px] text-slate-500 leading-snug font-medium line-clamp-1">
+                      {v.desc}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -373,11 +448,11 @@ export function SonoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Module
         </p>
         <button
           id="sono-ask-rafa-btn"
-          onClick={() => onStartChat()}
+          onClick={() => onStartChat("Professor Rafa, tenho tido dificuldade para pegar no sono ultimamente. O que você me recomenda fazer na minha rotina de sono?")}
           className="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-indigo-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
-          <span>PERGUNTAR AO PROF. RAFA</span>
+          <span>FALAR COM O PROFESSOR RAFA</span>
         </button>
       </div>
     </div>
@@ -387,7 +462,36 @@ export function SonoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Module
 // 3. MODULE: MEMÓRIA (Ginástica da Mente & Jogos de Estimulação Cognitiva)
 export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
   // Navigation between memory games
-  const [activeGame, setActiveGame] = useState<"pares" | "onde_estava" | "charadas">("pares");
+  const [activeGame, setActiveGame] = useState<"pares" | "onde_estava">("pares");
+
+  // Timer states for 10min limit
+  const [seconds, setSeconds] = useState(600); // 10 minutes
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [showBreakAlert, setShowBreakAlert] = useState(false);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isTimerRunning && seconds > 0) {
+      interval = setInterval(() => {
+        setSeconds(prev => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            setShowBreakAlert(true);
+            if (typeof window !== "undefined" && "speechSynthesis" in window) {
+              try {
+                const speech = new SpeechSynthesisUtterance("Muito bem! Você completou dez minutos de exercícios mentais. Agora, faça uma pausa para descansar.");
+                speech.lang = "pt-BR";
+                window.speechSynthesis.speak(speech);
+              } catch (e) {}
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, seconds]);
 
   // ==========================================
   // JOGO 1: PARES CLÁSSICOS (MEMORY MATCH) STATE & HELPERS
@@ -598,12 +702,59 @@ export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mod
           </button>
           <span className="text-xl font-black text-emerald-800 tracking-tight font-display ml-1 flex items-center gap-1">
             <Brain className="w-5 h-5 text-emerald-600 animate-pulse-slow" />
-            <span>Academia do Cérebro</span>
+            <span>Exercícios Mentais</span>
           </span>
         </div>
 
-        {/* 3 Games Picker Selector Tabs */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+        {/* Timer de Exercícios Mentais (10 min) */}
+        <div className="bg-purple-50/80 border-2 border-purple-100 p-2.5 rounded-2xl flex items-center justify-between shadow-xs">
+          <div className="text-left font-sans">
+            <span className="block text-[10px] font-extrabold text-purple-700 uppercase tracking-wider leading-none">Tempo de Exercício</span>
+            <span className={`text-base font-black mt-0.5 font-mono flex items-center gap-1 ${seconds === 0 ? "text-red-600 animate-pulse" : "text-slate-900"}`}>
+              ⏱️ {Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")} / 10:00
+            </span>
+          </div>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => setIsTimerRunning(!isTimerRunning)}
+              className="text-[10px] font-black px-2.5 py-1 rounded-lg border bg-white hover:bg-purple-100 transition-all text-purple-950 border-purple-200 cursor-pointer"
+            >
+              {isTimerRunning ? "Pausar ⏸️" : "Iniciar ▶️"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSeconds(600);
+                setIsTimerRunning(true);
+                setShowBreakAlert(false);
+              }}
+              className="text-[10px] font-black px-2.5 py-1 rounded-lg border bg-white hover:bg-slate-50 transition-all text-slate-700 border-slate-200 cursor-pointer"
+            >
+              Resetar 🔄
+            </button>
+          </div>
+        </div>
+
+        {showBreakAlert && (
+          <div className="bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl text-center space-y-2 animate-bounce shadow-md">
+            <span className="text-3xl">☕🕊️⏳</span>
+            <h4 className="text-base font-black text-amber-950">Hora do Descanso!</h4>
+            <p className="text-slate-700 text-xs font-bold leading-normal">
+              Você completou o tempo sugerido de 10 minutos de exercícios. Faça uma pausa agora para descansar sua visão e relaxar a mente!
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowBreakAlert(false)}
+              className="mt-2 text-xs font-black bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl border-2 border-amber-800 shadow-sm cursor-pointer transition-all"
+            >
+              Ok, entendi!
+            </button>
+          </div>
+        )}
+
+        {/* 2 Games Picker Selector Tabs */}
+        <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
           <button
             onClick={() => setActiveGame("pares")}
             className={`py-1.5 px-1 rounded-xl text-xs font-black transition-all cursor-pointer text-center ${
@@ -626,19 +777,6 @@ export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mod
             }`}
           >
             🙈 Onde Estava?
-          </button>
-          <button
-            onClick={() => {
-              setActiveGame("charadas");
-              setActiveRiddleId(null);
-            }}
-            className={`py-1.5 px-1 rounded-xl text-xs font-black transition-all cursor-pointer text-center ${
-              activeGame === "charadas"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            💡 Charadas
           </button>
         </div>
 
@@ -846,48 +984,7 @@ export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mod
           </div>
         )}
 
-        {/* ==========================================
-            GAME 3: COGNITIVE CHALLENGES / CHARADAS
-           ========================================== */}
-        {activeGame === "charadas" && (
-          <div className="space-y-2 animate-fade-in text-left">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide px-1">Charadas e Quebra-Cabeças do Rafa</span>
-            {charadas.map(item => {
-              const isSelected = activeRiddleId === item.id;
-              return (
-                <div key={item.id} className="bg-white border-2 border-slate-100 rounded-2xl overflow-hidden shadow-xs transition-all">
-                  <button
-                    type="button"
-                    onClick={() => setActiveRiddleId(isSelected ? null : item.id)}
-                    className="w-full text-left p-3 flex justify-between items-center hover:bg-slate-50 transition-colors"
-                  >
-                    <div>
-                      <span className="block font-black text-xs text-slate-800">{item.title}</span>
-                      <span className="block text-[10px] text-slate-500 font-bold mt-0.5 leading-tight">{item.question}</span>
-                    </div>
-                    <span className="text-base font-black text-slate-400 shrink-0 ml-2">
-                      {isSelected ? "▲" : "▼"}
-                    </span>
-                  </button>
 
-                  {isSelected && (
-                    <div className="bg-slate-50 p-3 border-t border-slate-100 space-y-2 text-left">
-                      <div className="space-y-0.5">
-                        <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-full inline-block">
-                          Resposta Correta:
-                        </span>
-                        <p className="text-xs font-black text-emerald-950 mt-1">{item.answer}</p>
-                      </div>
-                      <p className="text-[10px] text-slate-500 font-semibold leading-relaxed pt-1 border-t border-slate-200/50">
-                        {item.explanation}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
 
         {/* Helpful Tips Box */}
         <div className="bg-white border-2 border-slate-100 rounded-2xl p-2.5 space-y-1 text-slate-800 text-left shadow-xs">
@@ -896,19 +993,19 @@ export function MemoriaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Mod
             <span>Dica de Especialista do Prof. Rafa:</span>
           </h4>
           <p className="text-slate-500 text-[10px] leading-normal font-semibold">
-            Treinar a memória apenas 5 minutos todos os dias cria conexões neurais fortes, ajudando a evitar o esquecimento comum da rotina!
+            Praticar exercícios mentais apenas 5 minutos todos os dias cria conexões neurais fortes, ajudando a manter o cérebro jovem e focado!
           </p>
         </div>
       </div>
 
       {/* Dynamic CTA asking for voice help */}
-      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0">
+      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0 bg-slate-50">
         <p className="text-slate-600 text-xs font-bold text-center leading-none">
-          Gostaria de mais perguntas ou charadas para exercitar a memória agora?
+          Quer mais ideias de jogos ou exercícios mentais para fazer agora?
         </p>
         <button
           id="mem-ask-rafa-btn"
-          onClick={() => onStartChat("Professor Rafa, faça um pequeno jogo de perguntas e respostas em áudio comigo para testar minha atenção!")}
+          onClick={() => onStartChat("Professor Rafa, me dê mais ideias de desafios ou exercícios mentais para estimular meu cérebro!")}
           className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-emerald-800 text-sm shadow-xs cursor-pointer transition-all"
         >
           <Mic className="w-4 h-4 shrink-0" />
@@ -1059,14 +1156,13 @@ export function RotinaModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<Modu
                   </div>
                 </button>
 
-                {item.id.startsWith("custom-") && (
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="text-red-500 hover:text-red-700 font-extrabold text-[10px] px-1.5 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded cursor-pointer shrink-0 ml-1"
-                  >
-                    Excluir
-                  </button>
-                )}
+                <button
+                  id={`del-routine-${item.id}`}
+                  onClick={() => handleDeleteItem(item.id)}
+                  className="text-red-500 hover:text-red-700 font-extrabold text-[10px] px-1.5 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded cursor-pointer shrink-0 ml-1"
+                >
+                  Excluir
+                </button>
               </div>
             ))}
           </div>
@@ -2329,12 +2425,12 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
         ) : (
           <>
             <p className="text-slate-600 text-xs font-bold text-center leading-none">
-              Quer saber quais exames de rotina pedir na próxima médica?
+              Quer saber quais exames de rotina pedir na próxima consulta médica?
             </p>
             <button
               id="age-ask-rafa-btn"
-              onClick={() => onStartChat()}
-              className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all"
+              onClick={() => onStartChat("Professor Rafa, quais exames de rotina eu devo pedir na consulta médica para manter a saúde preventiva?")}
+              className="w-full bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2.5 rounded-xl flex items-center justify-center gap-2 font-black border-2 border-sky-800 text-sm shadow-xs cursor-pointer transition-all font-sans"
             >
               <Mic className="w-4 h-4 shrink-0" />
               <span>PERGUNTAR AO PROF. RAFA</span>
@@ -2348,75 +2444,7 @@ CREATE POLICY "Acesso total aos agendamentos" ON public.agendamentos
 
 // 7. MODULE: ALIMENTAÇÃO SAUDÁVEL (Nutrição & Hábitos para Seniores)
 export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<ModuleScreenProps, "topicId">) {
-  // Habits state with localStorage persistence
-  const [habits, setHabits] = useState(() => {
-    const cached = localStorage.getItem("senior_alimentacao_habits");
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (e) {
-        // Fallback below
-      }
-    }
-    return [
-      { id: "h1", name: "Beber água ao acordar 💧", done: false, detail: "Ajuda a ativar os órgãos e a lubrificar o estômago." },
-      { id: "h2", name: "Prato colorido no almoço 🥗", done: false, detail: "Busque ter verde, vermelho e amarelo para mais vitaminas." },
-      { id: "h3", name: "Comer uma fruta fresca de lanche 🍊", done: false, detail: "Excelente fonte de fibras naturais e imunidade." },
-      { id: "h4", name: "Mastigar devagar (20x por garfada) ⏳", done: false, detail: "Facilita muito a digestão e evita a sensação de estufamento." },
-    ];
-  });
-
   const [selectedPlateSection, setSelectedPlateSection] = useState<"saladas" | "proteinas" | "carboidratos">("saladas");
-  const [activeDicaIndex, setActiveDicaIndex] = useState<number | null>(null);
-  
-  // Rafael's Instant Wisdom simulation
-  const [selectedQuery, setSelectedQuery] = useState<string | null>(null);
-  const [queryAnswer, setQueryAnswer] = useState<string | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem("senior_alimentacao_habits", JSON.stringify(habits));
-  }, [habits]);
-
-  const toggleHabit = (id: string) => {
-    setHabits((prev: any) =>
-      prev.map((h: any) => (h.id === id ? { ...h, done: !h.done } : h))
-    );
-  };
-
-  const totalDone = habits.filter((h: any) => h.done).length;
-  const progressPercent = Math.round((totalDone / habits.length) * 100);
-
-  // Curated elder tips
-  const superDicas = [
-    {
-      title: "🧂 1. Reduza o sal usando Tempero Verde",
-      short: "Alho, cebola, orégano, coentro e limão.",
-      full: "O sal em excesso eleva a pressão arterial e cansa as artérias. Exponha o seu paladar a ervas frescas como alecrim, cebolinha, hortelã e limão espremido. Eles dão um sabor delicioso sem prejudicar o coração!"
-    },
-    {
-      title: "🥛 2. O Cálcio que protege os ossos",
-      short: "Leites, iogurte natural e vegetais escuros.",
-      full: "Para prevenir quedas e fortalecer o esqueleto, o cálcio é indispensável. Consuma iogurte natural desnatado, queijo branco, ou vegetais de folhas verde-escuras (como brócolis e couve refogada) diariamente."
-    },
-    {
-      title: "🥬 3. Fibras para um intestino ativo",
-      short: "Aveia, semente de linhaça e mamão formosa.",
-      full: "Com o passar dos anos, o trânsito intestinal pode desacelerar. Adicione uma colher de farelo de aveia nas frutas picadas ou no iogurte, e coma mamão ou ameixas secas. Isso mantém o intestino funcionando como um reloginho!"
-    },
-    {
-      title: "💧 4. Água silenciosa (Mesmo sem sede!)",
-      short: "Ande com um copinho sempre por perto.",
-      full: "Após os 60 anos, o corpo naturalmente perde um pouco do reflexo de sentir sede, mas a necessidade de água continua a mesma! Beber pequenos goles de água fresca previne tonturas, infecções urinárias e confusão mental."
-    }
-  ];
-
-  // Simulated answers from Profe Rafa
-  const rafaWisdom: Record<string, string> = {
-    "Suco de Uva Integral": "🍇 O suco de uva integral é excelente para o coração porque contém resveratrol, um poderoso antioxidante! Mas atenção: beba apenas um copo pequeno (150 ml) por dia, pois ele é bastante concentrado em açúcar natural da fruta.",
-    "Ovo Cozido": "🥚 O ovo é um 'superalimento'! Ele ajuda a manter a força dos músculos porque é rico em proteínas de altíssima qualidade. Prefira consumi-lo cozido ou mexido com um fio de azeite, evitando frituras em óleo imerso.",
-    "Café Preto": "☕ O cafezinho é ótimo para dar ânimo e foco! No entanto, evite adoçar demais com açúcar refinado e tome cuidado para não tomar após as 15:00 ou 16:00, para que ele não interfira no seu precioso sono à noite.",
-    "Chá de Boldo": "🌱 O sagrado boldo é um aliado incrível para quando o estômago está pesado ou a digestão está difícil. Ele ajuda o fígado no processo! Tome morno, preferencialmente sem açúcar refinado e sem ferver a folha por muito tempo."
-  };
 
   const plateSectionDetails = {
     saladas: {
@@ -2432,7 +2460,7 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
       examples: "Exemplos: Peito de frango desfiado, peixe assado, feijão fresco caldoso, ovos mexidos ou carne moída magra."
     },
     carboidratos: {
-      title: "🥔 25% UM QUARTO DO PRATO: Energia de Qualidade",
+      title: "🥔 25% UM QUARTO DO PRATO: Emprego de Alta Energia",
       badge: "Carboidratos Saudáveis & Grãos",
       desc: "Eles são o combustível do seu corpo para caminhar, falar e raciocinar. Mas prefira os carboidratos complexos (integrais) ou raízes naturais, que liberam energia devagar sem causar picos repentinos de açúcar no seu sangue.",
       examples: "Exemplos: Arroz integral, mandioquinha cozida, purê de batata-doce, abóbora cabotiá ou macarrão integral."
@@ -2440,8 +2468,8 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
   };
 
   return (
-    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none">
-      <div className="space-y-3">
+    <div className="flex-1 p-3 flex flex-col justify-between space-y-2.5 min-h-0 select-none font-sans">
+      <div className="space-y-3 flex-1 overflow-y-auto pr-0.5">
         {/* Module Header */}
         <div className="flex items-center gap-1 border-b border-slate-100 pb-1.5">
           <button
@@ -2469,67 +2497,36 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
               </p>
             </div>
           </div>
-          <p className="text-[10px] text-slate-600 font-semibold leading-normal border-t border-amber-200/50 pt-1">
-            ⚠️ <strong>Aviso Importante:</strong> Se você possui algum tipo de distúrbio alimentar, lembre-se de procurar a orientação de um médico especialista (nutricionista, endocrinologista ou nutrólogo) para um acompanhamento seguro e personalizado.
-          </p>
         </div>
 
-        {/* Goal Banner */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-100 p-2.5 rounded-2xl space-y-1 text-emerald-950 text-left">
-          <p className="font-bold text-xs leading-normal">
-            Alimentação colorida, corpo fortalecido e mente ativa! Vamos focar em pequenos hábitos saudáveis hoje?
-          </p>
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-xs font-black">Meta diária de hábitos:</span>
-            <span className="text-xs font-black text-emerald-800 bg-white border border-emerald-100 px-2 py-0.5 rounded-full">
-              {progressPercent}% Concluído ({totalDone}/{habits.length})
-            </span>
+        {/* Video placeholder */}
+        <div className="bg-slate-900 rounded-[24px] p-3 text-center border-2 border-slate-800 shadow-md space-y-2 relative">
+          <div className="absolute top-2 left-2 bg-emerald-600/90 text-white text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full z-10 animate-fade-in">
+            Dica do Rafa
           </div>
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-200/60 h-2.5 rounded-full overflow-hidden mt-1 border border-slate-200">
-            <div 
-              className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
 
-        {/* Interactive Habitos List */}
-        <div className="space-y-1.5">
-          <h3 className="text-xs font-black text-slate-700 text-left uppercase tracking-wide px-1">Meus Hábitos de Hoje:</h3>
-          <div className="grid grid-cols-1 gap-1.5">
-            {habits.map((item: any) => (
-              <button
-                key={item.id}
-                onClick={() => toggleHabit(item.id)}
-                className={`w-full text-left p-2 rounded-xl border-2 flex items-start gap-2.5 transition-all cursor-pointer ${
-                  item.done 
-                    ? "bg-emerald-50/60 border-emerald-300 text-emerald-950 shadow-xs" 
-                    : "bg-white border-slate-200 text-slate-800 hover:border-slate-300"
-                }`}
-              >
-                <div className="shrink-0 pt-0.5">
-                  {item.done ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-lg border-2 border-slate-300 bg-slate-50" />
-                  )}
-                </div>
-                <div>
-                  <span className={`block font-black text-xs leading-tight ${item.done ? "line-through text-slate-500 font-medium" : ""}`}>
-                    {item.name}
-                  </span>
-                  <p className="text-[10px] text-slate-500 font-semibold leading-normal mt-0.5">
-                    {item.detail}
-                  </p>
-                </div>
-              </button>
-            ))}
+          <div className="w-full aspect-video rounded-xl overflow-hidden shadow-inner relative bg-slate-950/90 flex flex-col items-center justify-center p-4 border border-slate-700/40">
+            <div className="space-y-1.5 text-center px-2">
+              <div className="mx-auto w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
+                <Play className="w-5 h-5 fill-current opacity-85 ml-0.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="block text-slate-200 text-[11px] font-black uppercase text-emerald-400">Vídeo de Alimentação</span>
+                <p className="text-slate-300 text-[10px] font-bold leading-tight">
+                  Vídeo sendo carregado... O link oficial do Professor Rafa será inserido aqui em breve!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Title under video */}
+          <div className="text-left space-y-1.5 pt-2 border-t border-slate-800/80">
+            <h4 className="text-slate-100 text-xs font-black leading-none">🎥 Alimentação e Longevidade</h4>
           </div>
         </div>
 
         {/* INTERACTIVE PLATE VISUALIZER */}
-        <div className="bg-white border-2 border-slate-100 rounded-2xl p-3 text-left space-y-2.5 shadow-sm">
+        <div className="bg-white border-2 border-slate-100 rounded-[20px] p-3 text-left space-y-2.5 shadow-sm">
           <div className="space-y-1">
             <h3 className="text-xs font-black text-slate-700 uppercase tracking-wide leading-none">🍽️ O Prato Saudável Guia</h3>
             <p className="text-[10px] text-slate-500 font-bold leading-tight">Como dividir idealmente suas refeições principais? Toque em um dos grupos abaixo para ler as dicas:</p>
@@ -2537,7 +2534,7 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
 
           {/* Interactive Plate Shape */}
           <div className="flex justify-center items-center py-2 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="relative w-36 h-36 rounded-full border-4 border-slate-200 flex overflow-hidden shadow-inner bg-white">
+            <div className="relative w-36 h-36 rounded-full border-4 border-slate-200 flex overflow-hidden shadow-inner bg-white animate-fade-in">
               {/* Metade Esquerda: Saladas (50%) */}
               <button
                 type="button"
@@ -2614,83 +2611,16 @@ export function AlimentacaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit
           </div>
         </div>
 
-        {/* SUPER HEALTHY TIPS FROM THE DOCTOR */}
-        <div className="space-y-1.5 text-left">
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-wide px-1">Super Dicas de Saúde Alimentar:</h3>
-          <div className="space-y-1.5">
-            {superDicas.map((item, idx) => {
-              const isOpen = activeDicaIndex === idx;
-              return (
-                <div key={idx} className="bg-white border-2 border-slate-100 rounded-2xl overflow-hidden transition-all shadow-xs">
-                  <button
-                    type="button"
-                    onClick={() => setActiveDicaIndex(isOpen ? null : idx)}
-                    className="w-full text-left p-3 flex justify-between items-center hover:bg-slate-50 transition-colors"
-                  >
-                    <div>
-                      <span className="block font-black text-xs text-slate-800">{item.title}</span>
-                      <span className="block text-[10px] text-slate-500 font-bold mt-0.5">{item.short}</span>
-                    </div>
-                    <span className="text-lg font-black text-slate-400 shrink-0 select-none">
-                      {isOpen ? "▲" : "▼"}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="bg-slate-50 p-3 border-t border-slate-100 text-[11px] text-slate-700 leading-relaxed font-medium">
-                      {item.full}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* INSTANT ADVICE WISDOM GENERATOR */}
-        <div className="bg-amber-50/50 border-2 border-amber-100 rounded-2xl p-3 text-left space-y-2">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">💡</span>
-              <h3 className="text-xs font-black text-amber-900 uppercase">Consultor de Alimentos do Rafa</h3>
-            </div>
-            <p className="text-[10px] text-slate-500 font-bold leading-tight">Escolha um item abaixo e veja o conselho do Professor Rafa sobre ele:</p>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5 pb-1">
-            {Object.keys(rafaWisdom).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setSelectedQuery(key);
-                  setQueryAnswer(rafaWisdom[key]);
-                }}
-                className={`text-[11px] px-2.5 py-1 rounded-xl border font-black transition-all cursor-pointer ${
-                  selectedQuery === key
-                    ? "bg-amber-600 border-amber-700 text-white shadow-xs"
-                    : "bg-white hover:bg-amber-50 border-amber-200 text-amber-900"
-                }`}
-              >
-                {key}
-              </button>
-            ))}
-          </div>
-
-          {selectedQuery && queryAnswer && (
-            <div className="bg-white p-2.5 rounded-xl border border-amber-200 text-left space-y-1 transition-all animate-fade-in shadow-xs">
-              <span className="text-[9px] font-black uppercase tracking-wide text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-full">
-                Professor Rafa na Escuta diz:
-              </span>
-              <p className="text-[11px] font-semibold text-slate-800 leading-relaxed">
-                {queryAnswer}
-              </p>
-            </div>
-          )}
+        {/* Aviso Importante at the end */}
+        <div className="bg-red-50/60 border border-red-100 p-3 rounded-2xl text-left">
+          <p className="text-[10px] text-red-950 font-bold leading-normal">
+            ⚠️ <strong>Aviso Importante:</strong> Se você possui algum tipo de distúrbio alimentar, lembre-se de procurar a orientação de um médico especialista (nutricionista, endocrinologista ou nutrólogo) para um acompanhamento seguro e personalizado.
+          </p>
         </div>
       </div>
 
       {/* Dynamic CTA with Rafa */}
-      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0">
+      <div className="bg-slate-100 border-2 border-slate-200 rounded-2xl p-2.5 space-y-1.5 shrink-0 animate-fade-in">
         <p className="text-slate-600 text-xs font-bold text-center leading-none">
           Precisa de ajuda para montar o cardápio da semana ou tem restrições alimentares?
         </p>
@@ -3072,13 +3002,6 @@ export function PrevencaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<M
           </span>
         </div>
 
-        {/* Intro */}
-        <div className="bg-gradient-to-br from-rose-50 to-orange-50 border-2 border-rose-100 p-2.5 rounded-2xl space-y-1 text-slate-800 text-left shadow-xs">
-          <p className="font-extrabold text-xs leading-normal text-rose-950">
-            A prevenção é o melhor remédio para manter a sua independência ativa! Selecione uma das categorias do Prof. Rafa para ver as orientações de segurança e os vídeos educativos:
-          </p>
-        </div>
-
         {/* ACTIVE ORIENTATIVE PLAYER & COMPAS GUIDE */}
         <div className="bg-slate-900 rounded-[24px] p-3 text-center border-2 border-slate-800 shadow-md space-y-2.5 relative">
           <div className="absolute top-2 left-2 bg-rose-600/90 text-white text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full z-10 animate-fade-in">
@@ -3112,16 +3035,6 @@ export function PrevencaoModule({ onGoBack, onStartChat, fontSizeLarge }: Omit<M
           {/* Guidelines under active topic */}
           <div className="text-left space-y-1.5 pt-2 border-t border-slate-800/80">
             <h4 className="text-slate-100 text-xs font-black leading-none">{activeTopic.emoji} Guia de Prevenção: {activeTopic.title}</h4>
-            <p className="text-slate-400 text-[10px] leading-snug font-semibold">{activeTopic.desc}</p>
-            
-            <ul className="space-y-1 pt-1.5">
-              {activeTopic.guidelines.map((line, lIdx) => (
-                <li key={lIdx} className="flex items-start gap-1.5 text-slate-300 text-[10px] font-semibold leading-normal">
-                  <span className="text-rose-500 font-bold">•</span>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
 

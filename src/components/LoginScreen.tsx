@@ -129,21 +129,6 @@ export default function LoginScreen({ onLoginSuccess, fontSizeLarge }: LoginScre
         </div>
 
         {/* Status Messages */}
-        {!isSupabaseConfigured && (
-          <div className="bg-amber-50 text-amber-900 p-3 rounded-xl border-2 border-amber-200 text-xs leading-relaxed space-y-1">
-            <div className="flex items-center gap-1.5 font-black text-amber-950">
-              <span className="inline-block w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
-              <span>Acesso Rápido Ativo (Apenas Armazenamento Local)</span>
-            </div>
-            <p className="font-semibold text-slate-700">
-              O aplicativo está configurado para salvar as informações de forma segura direto no seu navegador. Caso queira salvar na nuvem do Supabase, configure as credenciais.
-            </p>
-            <p className="font-bold text-slate-900 pt-1">
-              💡 Como configurar o Vercel: Insira as chaves <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_URL</code> e <code className="bg-amber-100 text-amber-800 px-1 rounded font-mono font-bold">VITE_SUPABASE_ANON_KEY</code> no painel da Vercel (Configurações do Projeto &gt; Environment Variables) e faça o deploy novamente!
-            </p>
-          </div>
-        )}
-
         {error && (
           <div className="bg-red-50 text-red-800 p-2.5 rounded-lg border border-red-200 flex items-start gap-2 text-xs">
             <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />

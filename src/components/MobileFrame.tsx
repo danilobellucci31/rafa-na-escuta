@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ShieldAlert, Menu, X, ArrowDownToLine, Smartphone, Info } from "lucide-react";
+import { ShieldAlert, Menu, X, ArrowDownToLine, Smartphone, Info, ZoomIn, ZoomOut } from "lucide-react";
 
 interface MobileFrameProps {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ interface MobileFrameProps {
   isLoggedIn: boolean;
   fontSizeLarge: boolean;
   setFontSizeLarge: (val: boolean) => void;
-  onNavigate?: (view: "dashboard" | "profile" | "settings" | "exercicios" | "sono" | "memoria" | "rotina") => void;
+  onNavigate?: (view: any) => void;
   fontSizePx?: number;
   setFontSizePx?: React.Dispatch<React.SetStateAction<number>>;
   currentView?: string;
@@ -29,6 +29,7 @@ export default function MobileFrame({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [showPricingLocalModal, setShowPricingLocalModal] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -78,7 +79,7 @@ export default function MobileFrame({
         </div>
 
         {/* Outer Header: Fixed Navigation & Core Urgent Action */}
-        <div id="phone-header" className="bg-white border-b border-slate-200 p-4 flex items-center justify-between shrink-0 shadow-xs z-20">
+        <div id="phone-header" className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between shrink-0 shadow-xs z-30">
           {isLoggedIn ? (
             <div className="flex items-center gap-2">
               <button
@@ -90,6 +91,14 @@ export default function MobileFrame({
               >
                 {isMenuOpen ? <X className="w-6 h-6 shrink-0" /> : <Menu className="w-6 h-6 shrink-0" />}
               </button>
+
+              <img 
+                src="/logo.png" 
+                alt="Prof. Rafa Logo" 
+                className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs shrink-0" 
+                referrerPolicy="no-referrer"
+              />
+
               <div className="block">
                 <span className="font-extrabold text-[10px] uppercase tracking-wider text-slate-400 block leading-none">PROF. RAFA</span>
                 <span className="font-black text-sm text-slate-900 block leading-tight">
@@ -98,7 +107,7 @@ export default function MobileFrame({
                    currentView === "chat" ? "Conversa" : 
                    currentView === "exercicios" ? "Exercícios" :
                    currentView === "sono" ? "Sono" :
-                   currentView === "memoria" ? "Memória" :
+                   currentView === "memoria" ? "Exercícios Mentais" :
                    currentView === "rotina" ? "Rotina" :
                    currentView === "remedios" ? "Remédios" :
                    currentView === "agendamentos" ? "Agendamentos" :
@@ -107,41 +116,65 @@ export default function MobileFrame({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 py-1 select-none">
+            <div 
+              onClick={() => onNavigate?.("landing")}
+              className="flex items-center gap-1.5 py-1 select-none cursor-pointer hover:opacity-90 shrink-0"
+            >
               <img 
                 src="/logo.png" 
                 alt="Prof. Rafa" 
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ring-2 ring-sky-100" 
+                className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-xs" 
                 referrerPolicy="no-referrer"
               />
-              <div>
-                <h1 className="text-xl font-bold font-display text-sky-950 tracking-tight leading-none">Prof. Rafa</h1>
-                <span className="text-slate-500 text-xs font-medium tracking-wide">Na Escuta...</span>
+              <div className="hidden min-[360px]:block">
+                <h1 className="text-sm font-black font-display text-sky-950 tracking-tight leading-none text-left">Prof. Rafa</h1>
+                <span className="text-slate-400 text-[9px] font-bold tracking-wide">Início</span>
               </div>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {!isLoggedIn && (
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  id="header-prices-modal-btn"
+                  onClick={() => setShowPricingLocalModal(true)}
+                  className="px-2 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-black rounded-lg transition-all cursor-pointer h-8 flex items-center shrink-0"
+                  title="Tabela de Preços"
+                >
+                  <span>🏷️ Preços</span>
+                </button>
+                <button
+                  id="header-goto-login-btn"
+                  onClick={() => onNavigate?.("login")}
+                  className="px-2 py-1.5 bg-sky-600 hover:bg-sky-700 text-white border border-sky-850 text-[10px] font-black rounded-lg transition-all cursor-pointer h-8 flex items-center shrink-0"
+                  title="Acessar Minha Conta"
+                >
+                  <span>🔑 Entrar</span>
+                </button>
+              </div>
+            )}
+
             {/* Controles de tamanho de fonte A- e A+ */}
             <div className="flex items-center bg-slate-100 hover:bg-slate-100/80 border-2 border-slate-200 rounded-2xl p-0.5 select-none shrink-0" id="header-font-controls">
               <button
                 id="header-font-dec"
                 onClick={() => setFontSizePx?.(prev => Math.max(12, prev - 2))}
-                className="w-9 h-9 flex items-center justify-center font-extrabold text-slate-700 hover:bg-white active:scale-95 rounded-xl text-xs transition-all cursor-pointer"
-                title="Diminuir letras (A-)"
+                className="w-7 h-7 flex items-center justify-center text-slate-700 hover:bg-white active:scale-95 rounded-xl transition-all cursor-pointer"
+                title="Diminuir letras"
                 aria-label="Diminuir tamanho das letras"
               >
-                A-
+                <ZoomOut className="w-4 h-4" />
               </button>
-              <div className="w-[1.5px] h-4 bg-slate-300 rounded-full mx-0.5"></div>
+              <div className="w-[1px] h-3.5 bg-slate-300 rounded-full mx-0.5"></div>
               <button
                 id="header-font-inc"
                 onClick={() => setFontSizePx?.(prev => Math.min(28, prev + 2))}
-                className="w-9 h-9 flex items-center justify-center font-black text-slate-900 hover:bg-white active:scale-95 rounded-xl text-base transition-all cursor-pointer"
-                title="Aumentar letras (A+)"
+                className="w-7 h-7 flex items-center justify-center text-slate-900 hover:bg-white active:scale-95 rounded-xl transition-all cursor-pointer"
+                title="Aumentar letras"
                 aria-label="Aumentar tamanho das letras"
               >
-                A+
+                <ZoomIn className="w-4 h-4" />
               </button>
             </div>
 
@@ -308,6 +341,98 @@ export default function MobileFrame({
                 >
                   Entendi! Vou Fazer
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Pricing Modal Overlay */}
+          {showPricingLocalModal && (
+            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xs z-55 flex items-end justify-center">
+              <div className="bg-slate-50 rounded-t-[28px] border-t-4 border-sky-600 p-4 space-y-3 shadow-2xl w-full max-h-[95%] overflow-y-auto text-slate-900">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <div>
+                    <h3 className="text-base font-black text-slate-800 font-display">Tabela de Preços e Planos</h3>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Sem contratos chatos, cancele quando desejar.</p>
+                  </div>
+                  <button
+                    onClick={() => setShowPricingLocalModal(false)}
+                    className="bg-slate-200 hover:bg-slate-300 rounded-full w-7 h-7 flex items-center justify-center text-slate-600 font-bold transition-transform cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {/* Plano Gratuito */}
+                  <div className="border-2 border-slate-200 p-3 rounded-2xl bg-white text-left space-y-1 relative">
+                    <span className="absolute top-2 right-2 text-[8px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded-full">Gratuito</span>
+                    <h4 className="text-xs font-black text-slate-900 uppercase">Plano Gratuito</h4>
+                    <div className="flex items-baseline gap-1 mt-0.5 leading-none">
+                      <span className="text-lg font-black text-slate-900">R$ 0,00</span>
+                      <span className="text-[9px] text-slate-400 font-semibold">para sempre</span>
+                    </div>
+                    <p className="text-[9px] text-slate-500 font-medium">Acesso total aos recursos fundamentais de bem-estar.</p>
+                    <div className="border-t border-slate-100 pt-1.5 space-y-0.5">
+                      <span className="block text-[9px] text-slate-700 font-semibold">✓ Acesso completo a todos os módulos do app</span>
+                      <span className="block text-[9px] text-slate-700 font-semibold">✓ Guias de alimentação saudável & rotinas</span>
+                      <span className="block text-[9px] text-slate-700 font-semibold">✓ Dicas de sono, alongamentos e mente</span>
+                      <span className="block text-[9px] text-slate-700 font-semibold">✓ 1 pergunta por dia para o Prof. Rafa</span>
+                    </div>
+                  </div>
+
+                  {/* Plano Iniciante */}
+                  <div className="border border-sky-305 bg-sky-50 text-sky-950 p-3 rounded-2xl text-left space-y-1 relative ring-2 ring-sky-500/10">
+                    <span className="absolute top-2 right-2 text-[8px] font-black uppercase bg-sky-700 text-white px-2 py-0.5 rounded-full">Mais Vendido</span>
+                    <h4 className="text-xs font-black text-slate-900 uppercase">Plano Iniciante</h4>
+                    <div className="flex items-baseline gap-1 mt-0.5 leading-none">
+                      <span className="text-lg font-black text-slate-900">R$ 9,90</span>
+                      <span className="text-[9px] text-slate-400 font-semibold">/mês</span>
+                    </div>
+                    <p className="text-[9px] text-slate-500 font-medium">Ideal para manter seu corpo e sua mente sempre ativos.</p>
+                    <div className="border-t border-sky-200/50 pt-1.5 space-y-0.5">
+                      <span className="block text-[9px] text-sky-900 font-semibold">✓ Acesso completo a todos os módulos do app</span>
+                      <span className="block text-[9px] text-sky-900 font-semibold">✓ Guias de alimentação saudável & rotinas</span>
+                      <span className="block text-[9px] text-sky-900 font-semibold">✓ Dicas de sono, alongamentos e mente</span>
+                      <span className="block text-[9px] text-sky-900 font-semibold">✓ 5 perguntas por dia para o Prof. Rafa</span>
+                    </div>
+                  </div>
+
+                  {/* Plano Avançado */}
+                  <div className="border-2 border-purple-200 bg-purple-50 text-purple-950 p-3 rounded-2xl text-left space-y-1 relative">
+                    <span className="absolute top-2 right-2 text-[8px] font-black uppercase bg-purple-800 text-white px-2 py-0.5 rounded-full">Proteção Total</span>
+                    <h4 className="text-xs font-black text-slate-900 uppercase">Plano Avançado</h4>
+                    <div className="flex items-baseline gap-1 mt-0.5 leading-none">
+                      <span className="text-lg font-black text-slate-900">R$ 24,90</span>
+                      <span className="text-[9px] text-slate-400 font-semibold">/mês</span>
+                    </div>
+                    <p className="text-[9px] text-slate-500 font-medium">Segurança, tranquilidade e mais conexão com o Prof. Rafa.</p>
+                    <div className="border-t border-purple-200/50 pt-1.5 space-y-0.5">
+                      <span className="block text-[9px] text-purple-900 font-semibold">✓ Acesso completo a todos os módulos do app</span>
+                      <span className="block text-[9px] text-purple-900 font-semibold">✓ Guias de alimentação saudável & rotinas</span>
+                      <span className="block text-[9px] text-purple-900 font-semibold">✓ Dicas de sono, alongamentos e mente</span>
+                      <span className="block text-[9px] text-purple-900 font-semibold">✓ 10 perguntas por dia para o Prof. Rafa</span>
+                      <span className="block text-[9px] text-purple-900 font-semibold">✓ Relatórios de saúde detalhados</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowPricingLocalModal(false);
+                      onNavigate?.("login");
+                    }}
+                    className="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2.5 px-3 rounded-xl text-xs font-black text-center cursor-pointer border border-sky-850 shadow-xs"
+                  >
+                    🚀 Começar Agora
+                  </button>
+                  <button
+                    onClick={() => setShowPricingLocalModal(false)}
+                    className="bg-slate-200 hover:bg-slate-300 text-slate-800 py-2.5 px-3 rounded-xl text-xs font-black text-center cursor-pointer"
+                  >
+                    Fechar
+                  </button>
+                </div>
               </div>
             </div>
           )}
