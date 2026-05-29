@@ -66,11 +66,11 @@ export default function MobileFrame({
   };
 
   return (
-    <div id="pwa-container" className="min-h-screen bg-slate-100 flex flex-col md:items-center md:justify-center md:py-8 md:px-4">
+    <div id="pwa-container" className="h-full w-full bg-slate-100 flex flex-col md:items-center md:justify-center md:py-8 md:px-4">
       {/* Outer Shell for Desktop Viewing - Styled with the exact Professional Polish frame specs */}
       <div 
         id="phone-envelope" 
-        className="w-full h-screen h-[100dvh] md:w-[380px] md:h-[820px] bg-white md:rounded-[48px] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-0 md:border-[12px] md:border-[#1e293b] flex flex-col overflow-hidden relative"
+        className="w-full h-full md:w-[380px] md:h-[820px] bg-white md:rounded-[48px] md:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-0 md:border-[12px] md:border-[#1e293b] flex flex-col overflow-hidden relative"
       >
         {/* Top Camera Notch & Speaker Grill Mockup on Desktop */}
         <div className="hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 w-40 h-6 bg-slate-800 rounded-b-2xl z-40 items-center justify-center">
